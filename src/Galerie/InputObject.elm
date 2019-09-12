@@ -17,6 +17,161 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
 
 
+buildArtistInputType : ArtistInputTypeRequiredFields -> (ArtistInputTypeOptionalFields -> ArtistInputTypeOptionalFields) -> ArtistInputType
+buildArtistInputType required fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { first_name = Absent, last_name = Absent, description = Absent, preview_artwork_id = Absent }
+    in
+    { first_name = optionals.first_name, last_name = optionals.last_name, nickname = required.nickname, description = optionals.description, preview_artwork_id = optionals.preview_artwork_id }
+
+
+type alias ArtistInputTypeRequiredFields =
+    { nickname : String }
+
+
+type alias ArtistInputTypeOptionalFields =
+    { first_name : OptionalArgument String
+    , last_name : OptionalArgument String
+    , description : OptionalArgument String
+    , preview_artwork_id : OptionalArgument String
+    }
+
+
+{-| Type for the ArtistInputType input object.
+-}
+type alias ArtistInputType =
+    { first_name : OptionalArgument String
+    , last_name : OptionalArgument String
+    , nickname : String
+    , description : OptionalArgument String
+    , preview_artwork_id : OptionalArgument String
+    }
+
+
+{-| Encode a ArtistInputType into a value that can be used as an argument.
+-}
+encodeArtistInputType : ArtistInputType -> Value
+encodeArtistInputType input =
+    Encode.maybeObject
+        [ ( "first_name", Encode.string |> Encode.optional input.first_name ), ( "last_name", Encode.string |> Encode.optional input.last_name ), ( "nickname", Encode.string input.nickname |> Just ), ( "description", Encode.string |> Encode.optional input.description ), ( "preview_artwork_id", Encode.string |> Encode.optional input.preview_artwork_id ) ]
+
+
+buildArtworkInputType : (ArtworkInputTypeOptionalFields -> ArtworkInputTypeOptionalFields) -> ArtworkInputType
+buildArtworkInputType fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { image_url = Absent, title = Absent, description = Absent, techniques = Absent, support = Absent, height = Absent, width = Absent, artist_id = Absent }
+    in
+    { image_url = optionals.image_url, title = optionals.title, description = optionals.description, techniques = optionals.techniques, support = optionals.support, height = optionals.height, width = optionals.width, artist_id = optionals.artist_id }
+
+
+type alias ArtworkInputTypeOptionalFields =
+    { image_url : OptionalArgument String
+    , title : OptionalArgument String
+    , description : OptionalArgument String
+    , techniques : OptionalArgument String
+    , support : OptionalArgument String
+    , height : OptionalArgument Float
+    , width : OptionalArgument Float
+    , artist_id : OptionalArgument String
+    }
+
+
+{-| Type for the ArtworkInputType input object.
+-}
+type alias ArtworkInputType =
+    { image_url : OptionalArgument String
+    , title : OptionalArgument String
+    , description : OptionalArgument String
+    , techniques : OptionalArgument String
+    , support : OptionalArgument String
+    , height : OptionalArgument Float
+    , width : OptionalArgument Float
+    , artist_id : OptionalArgument String
+    }
+
+
+{-| Encode a ArtworkInputType into a value that can be used as an argument.
+-}
+encodeArtworkInputType : ArtworkInputType -> Value
+encodeArtworkInputType input =
+    Encode.maybeObject
+        [ ( "image_url", Encode.string |> Encode.optional input.image_url ), ( "title", Encode.string |> Encode.optional input.title ), ( "description", Encode.string |> Encode.optional input.description ), ( "techniques", Encode.string |> Encode.optional input.techniques ), ( "support", Encode.string |> Encode.optional input.support ), ( "height", Encode.float |> Encode.optional input.height ), ( "width", Encode.float |> Encode.optional input.width ), ( "artist_id", Encode.string |> Encode.optional input.artist_id ) ]
+
+
+buildExhibitionInputType : (ExhibitionInputTypeOptionalFields -> ExhibitionInputTypeOptionalFields) -> ExhibitionInputType
+buildExhibitionInputType fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { title = Absent, description = Absent, beginning_date = Absent, ending_date = Absent, artist_id = Absent }
+    in
+    { title = optionals.title, description = optionals.description, beginning_date = optionals.beginning_date, ending_date = optionals.ending_date, artist_id = optionals.artist_id }
+
+
+type alias ExhibitionInputTypeOptionalFields =
+    { title : OptionalArgument String
+    , description : OptionalArgument String
+    , beginning_date : OptionalArgument String
+    , ending_date : OptionalArgument String
+    , artist_id : OptionalArgument String
+    }
+
+
+{-| Type for the ExhibitionInputType input object.
+-}
+type alias ExhibitionInputType =
+    { title : OptionalArgument String
+    , description : OptionalArgument String
+    , beginning_date : OptionalArgument String
+    , ending_date : OptionalArgument String
+    , artist_id : OptionalArgument String
+    }
+
+
+{-| Encode a ExhibitionInputType into a value that can be used as an argument.
+-}
+encodeExhibitionInputType : ExhibitionInputType -> Value
+encodeExhibitionInputType input =
+    Encode.maybeObject
+        [ ( "title", Encode.string |> Encode.optional input.title ), ( "description", Encode.string |> Encode.optional input.description ), ( "beginning_date", Encode.string |> Encode.optional input.beginning_date ), ( "ending_date", Encode.string |> Encode.optional input.ending_date ), ( "artist_id", Encode.string |> Encode.optional input.artist_id ) ]
+
+
+buildExposedArtworkInputType : (ExposedArtworkInputTypeOptionalFields -> ExposedArtworkInputTypeOptionalFields) -> ExposedArtworkInputType
+buildExposedArtworkInputType fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { artwork_id = Absent, exhibition_id = Absent }
+    in
+    { artwork_id = optionals.artwork_id, exhibition_id = optionals.exhibition_id }
+
+
+type alias ExposedArtworkInputTypeOptionalFields =
+    { artwork_id : OptionalArgument String
+    , exhibition_id : OptionalArgument String
+    }
+
+
+{-| Type for the ExposedArtworkInputType input object.
+-}
+type alias ExposedArtworkInputType =
+    { artwork_id : OptionalArgument String
+    , exhibition_id : OptionalArgument String
+    }
+
+
+{-| Encode a ExposedArtworkInputType into a value that can be used as an argument.
+-}
+encodeExposedArtworkInputType : ExposedArtworkInputType -> Value
+encodeExposedArtworkInputType input =
+    Encode.maybeObject
+        [ ( "artwork_id", Encode.string |> Encode.optional input.artwork_id ), ( "exhibition_id", Encode.string |> Encode.optional input.exhibition_id ) ]
+
+
 buildSubscribedQueryInputType : (SubscribedQueryInputTypeOptionalFields -> SubscribedQueryInputTypeOptionalFields) -> SubscribedQueryInputType
 buildSubscribedQueryInputType fillOptionals =
     let

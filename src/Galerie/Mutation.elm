@@ -19,6 +19,50 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode exposing (Decoder)
 
 
+type alias BulkCreateArtistRequiredArguments =
+    { artist : List (Maybe Galerie.InputObject.ArtistInputType) }
+
+
+{-| creates some Artists
+-}
+bulk_create_artist : BulkCreateArtistRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
+bulk_create_artist requiredArgs object_ =
+    Object.selectionForCompositeField "bulk_create_artist" [ Argument.required "artist" requiredArgs.artist (Galerie.InputObject.encodeArtistInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
+type alias BulkCreateArtworkRequiredArguments =
+    { artwork : List (Maybe Galerie.InputObject.ArtworkInputType) }
+
+
+{-| creates some Artworks
+-}
+bulk_create_artwork : BulkCreateArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
+bulk_create_artwork requiredArgs object_ =
+    Object.selectionForCompositeField "bulk_create_artwork" [ Argument.required "artwork" requiredArgs.artwork (Galerie.InputObject.encodeArtworkInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
+type alias BulkCreateExhibitionRequiredArguments =
+    { exhibition : List (Maybe Galerie.InputObject.ExhibitionInputType) }
+
+
+{-| creates some Exhibitions
+-}
+bulk_create_exhibition : BulkCreateExhibitionRequiredArguments -> SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
+bulk_create_exhibition requiredArgs object_ =
+    Object.selectionForCompositeField "bulk_create_exhibition" [ Argument.required "exhibition" requiredArgs.exhibition (Galerie.InputObject.encodeExhibitionInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
+type alias BulkCreateExposedArtworkRequiredArguments =
+    { exposed_artwork : List (Maybe Galerie.InputObject.ExposedArtworkInputType) }
+
+
+{-| creates some ExposedArtworks
+-}
+bulk_create_exposed_artwork : BulkCreateExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
+bulk_create_exposed_artwork requiredArgs object_ =
+    Object.selectionForCompositeField "bulk_create_exposed_artwork" [ Argument.required "exposed_artwork" requiredArgs.exposed_artwork (Galerie.InputObject.encodeExposedArtworkInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
 type alias BulkCreateSubscribedQueryRequiredArguments =
     { subscribed_query : List (Maybe Galerie.InputObject.SubscribedQueryInputType) }
 
@@ -50,6 +94,50 @@ type alias BulkCreateWebsocketConnectionRequiredArguments =
 bulk_create_websocket_connection : BulkCreateWebsocketConnectionRequiredArguments -> SelectionSet decodesTo Galerie.Object.WebsocketConnection -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
 bulk_create_websocket_connection requiredArgs object_ =
     Object.selectionForCompositeField "bulk_create_websocket_connection" [ Argument.required "websocket_connection" requiredArgs.websocket_connection (Galerie.InputObject.encodeWebsocketConnectionInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
+type alias BulkUpdateArtistRequiredArguments =
+    { artist : List (Maybe Galerie.InputObject.ArtistInputType) }
+
+
+{-| Updates some Artists
+-}
+bulk_update_artist : BulkUpdateArtistRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
+bulk_update_artist requiredArgs object_ =
+    Object.selectionForCompositeField "bulk_update_artist" [ Argument.required "artist" requiredArgs.artist (Galerie.InputObject.encodeArtistInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
+type alias BulkUpdateArtworkRequiredArguments =
+    { artwork : List (Maybe Galerie.InputObject.ArtworkInputType) }
+
+
+{-| Updates some Artworks
+-}
+bulk_update_artwork : BulkUpdateArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
+bulk_update_artwork requiredArgs object_ =
+    Object.selectionForCompositeField "bulk_update_artwork" [ Argument.required "artwork" requiredArgs.artwork (Galerie.InputObject.encodeArtworkInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
+type alias BulkUpdateExhibitionRequiredArguments =
+    { exhibition : List (Maybe Galerie.InputObject.ExhibitionInputType) }
+
+
+{-| Updates some Exhibitions
+-}
+bulk_update_exhibition : BulkUpdateExhibitionRequiredArguments -> SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
+bulk_update_exhibition requiredArgs object_ =
+    Object.selectionForCompositeField "bulk_update_exhibition" [ Argument.required "exhibition" requiredArgs.exhibition (Galerie.InputObject.encodeExhibitionInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
+type alias BulkUpdateExposedArtworkRequiredArguments =
+    { exposed_artwork : List (Maybe Galerie.InputObject.ExposedArtworkInputType) }
+
+
+{-| Updates some ExposedArtworks
+-}
+bulk_update_exposed_artwork : BulkUpdateExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
+bulk_update_exposed_artwork requiredArgs object_ =
+    Object.selectionForCompositeField "bulk_update_exposed_artwork" [ Argument.required "exposed_artwork" requiredArgs.exposed_artwork (Galerie.InputObject.encodeExposedArtworkInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
 
 
 type alias BulkUpdateSubscribedQueryRequiredArguments =
@@ -85,6 +173,50 @@ bulk_update_websocket_connection requiredArgs object_ =
     Object.selectionForCompositeField "bulk_update_websocket_connection" [ Argument.required "websocket_connection" requiredArgs.websocket_connection (Galerie.InputObject.encodeWebsocketConnectionInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
 
 
+type alias CreateArtistRequiredArguments =
+    { artist : Galerie.InputObject.ArtistInputType }
+
+
+{-| Creates a Artist
+-}
+create_artist : CreateArtistRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet (Maybe decodesTo) RootMutation
+create_artist requiredArgs object_ =
+    Object.selectionForCompositeField "create_artist" [ Argument.required "artist" requiredArgs.artist Galerie.InputObject.encodeArtistInputType ] object_ (identity >> Decode.nullable)
+
+
+type alias CreateArtworkRequiredArguments =
+    { artwork : Galerie.InputObject.ArtworkInputType }
+
+
+{-| Creates a Artwork
+-}
+create_artwork : CreateArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (Maybe decodesTo) RootMutation
+create_artwork requiredArgs object_ =
+    Object.selectionForCompositeField "create_artwork" [ Argument.required "artwork" requiredArgs.artwork Galerie.InputObject.encodeArtworkInputType ] object_ (identity >> Decode.nullable)
+
+
+type alias CreateExhibitionRequiredArguments =
+    { exhibition : Galerie.InputObject.ExhibitionInputType }
+
+
+{-| Creates a Exhibition
+-}
+create_exhibition : CreateExhibitionRequiredArguments -> SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (Maybe decodesTo) RootMutation
+create_exhibition requiredArgs object_ =
+    Object.selectionForCompositeField "create_exhibition" [ Argument.required "exhibition" requiredArgs.exhibition Galerie.InputObject.encodeExhibitionInputType ] object_ (identity >> Decode.nullable)
+
+
+type alias CreateExposedArtworkRequiredArguments =
+    { exposed_artwork : Galerie.InputObject.ExposedArtworkInputType }
+
+
+{-| Creates a ExposedArtwork
+-}
+create_exposed_artwork : CreateExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (Maybe decodesTo) RootMutation
+create_exposed_artwork requiredArgs object_ =
+    Object.selectionForCompositeField "create_exposed_artwork" [ Argument.required "exposed_artwork" requiredArgs.exposed_artwork Galerie.InputObject.encodeExposedArtworkInputType ] object_ (identity >> Decode.nullable)
+
+
 type alias CreateSubscribedQueryRequiredArguments =
     { subscribed_query : Galerie.InputObject.SubscribedQueryInputType }
 
@@ -118,6 +250,50 @@ create_websocket_connection requiredArgs object_ =
     Object.selectionForCompositeField "create_websocket_connection" [ Argument.required "websocket_connection" requiredArgs.websocket_connection Galerie.InputObject.encodeWebsocketConnectionInputType ] object_ (identity >> Decode.nullable)
 
 
+type alias DestroyArtistRequiredArguments =
+    { id : String }
+
+
+{-| Destroys a Artist
+-}
+destroy_artist : DestroyArtistRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet (Maybe decodesTo) RootMutation
+destroy_artist requiredArgs object_ =
+    Object.selectionForCompositeField "destroy_artist" [ Argument.required "id" requiredArgs.id Encode.string ] object_ (identity >> Decode.nullable)
+
+
+type alias DestroyArtworkRequiredArguments =
+    { id : String }
+
+
+{-| Destroys a Artwork
+-}
+destroy_artwork : DestroyArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (Maybe decodesTo) RootMutation
+destroy_artwork requiredArgs object_ =
+    Object.selectionForCompositeField "destroy_artwork" [ Argument.required "id" requiredArgs.id Encode.string ] object_ (identity >> Decode.nullable)
+
+
+type alias DestroyExhibitionRequiredArguments =
+    { id : String }
+
+
+{-| Destroys a Exhibition
+-}
+destroy_exhibition : DestroyExhibitionRequiredArguments -> SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (Maybe decodesTo) RootMutation
+destroy_exhibition requiredArgs object_ =
+    Object.selectionForCompositeField "destroy_exhibition" [ Argument.required "id" requiredArgs.id Encode.string ] object_ (identity >> Decode.nullable)
+
+
+type alias DestroyExposedArtworkRequiredArguments =
+    { id : String }
+
+
+{-| Destroys a ExposedArtwork
+-}
+destroy_exposed_artwork : DestroyExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (Maybe decodesTo) RootMutation
+destroy_exposed_artwork requiredArgs object_ =
+    Object.selectionForCompositeField "destroy_exposed_artwork" [ Argument.required "id" requiredArgs.id Encode.string ] object_ (identity >> Decode.nullable)
+
+
 type alias DestroySubscribedQueryRequiredArguments =
     { id : String }
 
@@ -149,6 +325,98 @@ type alias DestroyWebsocketConnectionRequiredArguments =
 destroy_websocket_connection : DestroyWebsocketConnectionRequiredArguments -> SelectionSet decodesTo Galerie.Object.WebsocketConnection -> SelectionSet (Maybe decodesTo) RootMutation
 destroy_websocket_connection requiredArgs object_ =
     Object.selectionForCompositeField "destroy_websocket_connection" [ Argument.required "id" requiredArgs.id Encode.string ] object_ (identity >> Decode.nullable)
+
+
+type alias UpdateArtistOptionalArguments =
+    { id : OptionalArgument String }
+
+
+type alias UpdateArtistRequiredArguments =
+    { artist : Galerie.InputObject.ArtistInputType }
+
+
+{-| Updates a Artist
+-}
+update_artist : (UpdateArtistOptionalArguments -> UpdateArtistOptionalArguments) -> UpdateArtistRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet (Maybe decodesTo) RootMutation
+update_artist fillInOptionals requiredArgs object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { id = Absent }
+
+        optionalArgs =
+            [ Argument.optional "id" filledInOptionals.id Encode.string ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "update_artist" (optionalArgs ++ [ Argument.required "artist" requiredArgs.artist Galerie.InputObject.encodeArtistInputType ]) object_ (identity >> Decode.nullable)
+
+
+type alias UpdateArtworkOptionalArguments =
+    { id : OptionalArgument String }
+
+
+type alias UpdateArtworkRequiredArguments =
+    { artwork : Galerie.InputObject.ArtworkInputType }
+
+
+{-| Updates a Artwork
+-}
+update_artwork : (UpdateArtworkOptionalArguments -> UpdateArtworkOptionalArguments) -> UpdateArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (Maybe decodesTo) RootMutation
+update_artwork fillInOptionals requiredArgs object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { id = Absent }
+
+        optionalArgs =
+            [ Argument.optional "id" filledInOptionals.id Encode.string ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "update_artwork" (optionalArgs ++ [ Argument.required "artwork" requiredArgs.artwork Galerie.InputObject.encodeArtworkInputType ]) object_ (identity >> Decode.nullable)
+
+
+type alias UpdateExhibitionOptionalArguments =
+    { id : OptionalArgument String }
+
+
+type alias UpdateExhibitionRequiredArguments =
+    { exhibition : Galerie.InputObject.ExhibitionInputType }
+
+
+{-| Updates a Exhibition
+-}
+update_exhibition : (UpdateExhibitionOptionalArguments -> UpdateExhibitionOptionalArguments) -> UpdateExhibitionRequiredArguments -> SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (Maybe decodesTo) RootMutation
+update_exhibition fillInOptionals requiredArgs object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { id = Absent }
+
+        optionalArgs =
+            [ Argument.optional "id" filledInOptionals.id Encode.string ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "update_exhibition" (optionalArgs ++ [ Argument.required "exhibition" requiredArgs.exhibition Galerie.InputObject.encodeExhibitionInputType ]) object_ (identity >> Decode.nullable)
+
+
+type alias UpdateExposedArtworkOptionalArguments =
+    { id : OptionalArgument String }
+
+
+type alias UpdateExposedArtworkRequiredArguments =
+    { exposed_artwork : Galerie.InputObject.ExposedArtworkInputType }
+
+
+{-| Updates a ExposedArtwork
+-}
+update_exposed_artwork : (UpdateExposedArtworkOptionalArguments -> UpdateExposedArtworkOptionalArguments) -> UpdateExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (Maybe decodesTo) RootMutation
+update_exposed_artwork fillInOptionals requiredArgs object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { id = Absent }
+
+        optionalArgs =
+            [ Argument.optional "id" filledInOptionals.id Encode.string ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "update_exposed_artwork" (optionalArgs ++ [ Argument.required "exposed_artwork" requiredArgs.exposed_artwork Galerie.InputObject.encodeExposedArtworkInputType ]) object_ (identity >> Decode.nullable)
 
 
 type alias UpdateSubscribedQueryOptionalArguments =

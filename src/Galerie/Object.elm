@@ -5,6 +5,22 @@
 module Galerie.Object exposing (..)
 
 
+type Artist
+    = Artist
+
+
+type Artwork
+    = Artwork
+
+
+type Exhibition
+    = Exhibition
+
+
+type ExposedArtwork
+    = ExposedArtwork
+
+
 type SubscribedQuery
     = SubscribedQuery
 

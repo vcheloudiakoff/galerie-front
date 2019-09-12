@@ -19,6 +19,134 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode exposing (Decoder)
 
 
+type alias ArtistRequiredArguments =
+    { id : String }
+
+
+{-| Returns a Artist
+-}
+artist : ArtistRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet decodesTo RootQuery
+artist requiredArgs object_ =
+    Object.selectionForCompositeField "artist" [ Argument.required "id" requiredArgs.id Encode.string ] object_ identity
+
+
+type alias ArtistsOptionalArguments =
+    { page : OptionalArgument Int
+    , per_page : OptionalArgument Int
+    }
+
+
+{-| Returns a Artist
+-}
+artists : (ArtistsOptionalArguments -> ArtistsOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet (List decodesTo) RootQuery
+artists fillInOptionals object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { page = Absent, per_page = Absent }
+
+        optionalArgs =
+            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "artists" optionalArgs object_ (identity >> Decode.list)
+
+
+type alias ArtworkRequiredArguments =
+    { id : String }
+
+
+{-| Returns a Artwork
+-}
+artwork : ArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet decodesTo RootQuery
+artwork requiredArgs object_ =
+    Object.selectionForCompositeField "artwork" [ Argument.required "id" requiredArgs.id Encode.string ] object_ identity
+
+
+type alias ArtworksOptionalArguments =
+    { page : OptionalArgument Int
+    , per_page : OptionalArgument Int
+    }
+
+
+{-| Returns a Artwork
+-}
+artworks : (ArtworksOptionalArguments -> ArtworksOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (List decodesTo) RootQuery
+artworks fillInOptionals object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { page = Absent, per_page = Absent }
+
+        optionalArgs =
+            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "artworks" optionalArgs object_ (identity >> Decode.list)
+
+
+type alias ExhibitionRequiredArguments =
+    { id : String }
+
+
+{-| Returns a Exhibition
+-}
+exhibition : ExhibitionRequiredArguments -> SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet decodesTo RootQuery
+exhibition requiredArgs object_ =
+    Object.selectionForCompositeField "exhibition" [ Argument.required "id" requiredArgs.id Encode.string ] object_ identity
+
+
+type alias ExhibitionsOptionalArguments =
+    { page : OptionalArgument Int
+    , per_page : OptionalArgument Int
+    }
+
+
+{-| Returns a Exhibition
+-}
+exhibitions : (ExhibitionsOptionalArguments -> ExhibitionsOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (List decodesTo) RootQuery
+exhibitions fillInOptionals object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { page = Absent, per_page = Absent }
+
+        optionalArgs =
+            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "exhibitions" optionalArgs object_ (identity >> Decode.list)
+
+
+type alias ExposedArtworkRequiredArguments =
+    { id : String }
+
+
+{-| Returns a ExposedArtwork
+-}
+exposed_artwork : ExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet decodesTo RootQuery
+exposed_artwork requiredArgs object_ =
+    Object.selectionForCompositeField "exposed_artwork" [ Argument.required "id" requiredArgs.id Encode.string ] object_ identity
+
+
+type alias ExposedArtworksOptionalArguments =
+    { page : OptionalArgument Int
+    , per_page : OptionalArgument Int
+    }
+
+
+{-| Returns a ExposedArtwork
+-}
+exposed_artworks : (ExposedArtworksOptionalArguments -> ExposedArtworksOptionalArguments) -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (List decodesTo) RootQuery
+exposed_artworks fillInOptionals object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { page = Absent, per_page = Absent }
+
+        optionalArgs =
+            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "exposed_artworks" optionalArgs object_ (identity >> Decode.list)
+
+
 {-| Returns the current user
 -}
 me : SelectionSet decodesTo Galerie.Object.User -> SelectionSet (Maybe decodesTo) RootQuery
