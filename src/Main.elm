@@ -50,13 +50,15 @@ artist =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        GotResponse response ->
+            ( response, Cmd.none )
 
 
 makeRequest : Cmd Msg
 makeRequest =
     query
-        |> Graphql.Http.queryRequest "http://localhost:3000"
+        |> Graphql.Http.queryRequest "http://localhost:3000/graphql"
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 

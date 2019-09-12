@@ -2,6 +2,7 @@ module Helpers.Main exposing (Program, document)
 
 import Browser
 import DateFormat exposing (text)
+import Debug exposing (log)
 import Html exposing (Html, a, div, h1, input, label, p, pre, text)
 import Html.Attributes exposing (href, type_)
 import Html.Events exposing (onClick)
@@ -81,7 +82,7 @@ view query model =
                 ]
             , div []
                 [ h1 [] [ text "Response" ]
-                , model.subModel |> PrintAny.view
+                , log "SUBMODEL" model.subModel |> PrintAny.view
                 ]
             ]
         ]
