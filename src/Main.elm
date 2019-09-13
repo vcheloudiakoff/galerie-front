@@ -9,6 +9,7 @@ import Galerie.Query as Query
 import Graphql.Document as Document
 import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
+import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Helpers.Main
 import Html exposing (Html, div, h1, img, text)
@@ -21,7 +22,7 @@ import RemoteData exposing (RemoteData)
 
 
 type alias Response =
-    { vincent : ArtistLookup
+    { artists : List ArtistLookup
     }
 
 
@@ -65,7 +66,7 @@ makeRequest =
 query : SelectionSet Response RootQuery
 query =
     SelectionSet.map Response
-        (Query.artist { id = "8aefadc3-7fe6-4ccd-a1ea-73150b208101" } artist)
+        (Query.artists (\n -> { n | page = Present 1, per_page = Present 1 }) artist)
 
 
 
