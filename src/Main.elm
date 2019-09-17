@@ -13,9 +13,8 @@ import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
-import Helpers.Main
 import Html exposing (Html, a, div, h1, img, input, label, p, pre, text)
-import Html.Attributes exposing (href, src, type_)
+import Html.Attributes exposing (alt, checked, href, src, type_)
 import Html.Events exposing (onClick)
 import PrintAny
 import Regex
@@ -28,12 +27,15 @@ import RemoteData exposing (RemoteData)
 
 type Msg
     = ToggleAliases
+    | ToggleDebugView
     | GotResponse (RemoteData (Graphql.Http.Error Response) Response)
 
 
 type alias Model =
     { hideAliases : Bool
     , response : RemoteData (Graphql.Http.Error Response) Response
+    , toggleDebugView : Bool
+    , artists : List ArtistLookup
     }
 
 
@@ -54,16 +56,16 @@ type alias ArtistLookup =
     }
 
 
-artist : SelectionSet ArtistLookup Galerie.Object.Artist
-artist =
+artistSelector : SelectionSet ArtistLookup Galerie.Object.Artist
+artistSelector =
     SelectionSet.map3 ArtistLookup
         Artist.nickname
         Artist.id
-        (Artist.preview_artwork preview_artwork)
+        (Artist.preview_artwork preview_artwork_selector)
 
 
-preview_artwork : SelectionSet ArtworkLookup Galerie.Object.Artwork
-preview_artwork =
+preview_artwork_selector : SelectionSet ArtworkLookup Galerie.Object.Artwork
+preview_artwork_selector =
     SelectionSet.map ArtworkLookup
         Artwork.image_url
 
@@ -76,10 +78,18 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotResponse response ->
-            ( { model | response = response }, Cmd.none )
+            case response of
+                RemoteData.Success data ->
+                    ( { model | response = response, artists = data.artists }, Cmd.none )
+
+                _ ->
+                    ( { model | response = response }, Cmd.none )
 
         ToggleAliases ->
             ( { model | hideAliases = not model.hideAliases }, Cmd.none )
+
+        ToggleDebugView ->
+            ( { model | toggleDebugView = not model.toggleDebugView }, Cmd.none )
 
 
 makeRequest : Cmd Msg
@@ -92,28 +102,25 @@ makeRequest =
 rootQuery : SelectionSet Response RootQuery
 rootQuery =
     SelectionSet.map Response
-        (Query.artists (\n -> { n | order_by = Present "nickname asc" }) artist)
+        (Query.artists (\n -> { n | order_by = Present "nickname asc" }) artistSelector)
 
 
 
 ---- VIEW ----
--- view : Model -> Html Msg
--- view model =
---     div []
---         [ img [ src "/logo.svg" ] []
---         , h1 [] [ text "Artistes" ]
---         , div
---             []
---             [ img [ src "/logo.svg" ] []
---             , h1 [] [ text model.artist.nickname ]
---             ]
---         ]
 ---- PROGRAM ----
 
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { hideAliases = False, response = RemoteData.Loading }, makeRequest )
+    ( initModel, makeRequest )
+
+
+initModel =
+    { hideAliases = False
+    , response = RemoteData.Loading
+    , toggleDebugView = False
+    , artists = []
+    }
 
 
 type alias Flags =
@@ -125,17 +132,55 @@ main =
         { init = init
         , update = update
         , subscriptions = \_ -> Sub.none
-        , view = view (Document.serializeQuery rootQuery)
+        , view = chooseView (Document.serializeQuery rootQuery)
         }
+
+
+chooseView : String -> Model -> Browser.Document Msg
+chooseView query model =
+    if model.toggleDebugView then
+        debugView query model
+
+    else
+        view query model
 
 
 view : String -> Model -> Browser.Document Msg
 view query model =
+    let
+        artists =
+            model.artists
+    in
+    { title = "Query Explorer"
+    , body =
+        [ div []
+            [ p [] [ toggleDebugViewCheckbox model ]
+            , div [] (List.map showPreviewArtwork artists)
+
+            -- , img [ alt "no image" src artist.preview_artwork.image_url ] []
+            ]
+        ]
+    }
+
+
+showPreviewArtwork : ArtistLookup -> Html msg
+showPreviewArtwork artist =
+    case artist.preview_artwork of
+        Just preview_artwork ->
+            img [ alt "", src preview_artwork.image_url ] []
+
+        Nothing ->
+            div [] []
+
+
+debugView : String -> Model -> Browser.Document Msg
+debugView query model =
     { title = "Query Explorer"
     , body =
         [ div []
             [ div []
-                [ h1 [] [ Html.text "Generated Query" ]
+                [ p [] [ toggleDebugViewCheckbox model ]
+                , h1 [] [ Html.text "Generated Query" ]
                 , p [] [ toggleAliasesCheckbox ]
                 , pre []
                     [ (if model.hideAliases then
@@ -165,6 +210,14 @@ toggleAliasesCheckbox =
         , a [ href "https://github.com/dillonkearns/elm-graphql/blob/master/FAQ.md#how-do-field-aliases-work-in-dillonkearnselm-graphql" ]
             [ Html.text "(?)"
             ]
+        ]
+
+
+toggleDebugViewCheckbox : Model -> Html Msg
+toggleDebugViewCheckbox model =
+    label []
+        [ input [ type_ "checkbox", onClick ToggleDebugView, checked model.toggleDebugView ] []
+        , Html.text " Change view "
         ]
 
 
