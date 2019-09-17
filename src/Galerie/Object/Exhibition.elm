@@ -29,6 +29,16 @@ artist_id =
     Object.selectionForField "(Maybe String)" "artist_id" [] (Decode.string |> Decode.nullable)
 
 
+artwork_ids : SelectionSet (Maybe (List (Maybe String))) Galerie.Object.Exhibition
+artwork_ids =
+    Object.selectionForField "(Maybe (List (Maybe String)))" "artwork_ids" [] (Decode.string |> Decode.nullable |> Decode.list |> Decode.nullable)
+
+
+artworks : SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (Maybe (List (Maybe decodesTo))) Galerie.Object.Exhibition
+artworks object_ =
+    Object.selectionForCompositeField "artworks" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
 beginning_date : SelectionSet (Maybe String) Galerie.Object.Exhibition
 beginning_date =
     Object.selectionForField "(Maybe String)" "beginning_date" [] (Decode.string |> Decode.nullable)

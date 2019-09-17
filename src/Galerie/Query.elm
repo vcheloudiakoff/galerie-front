@@ -33,6 +33,8 @@ artist requiredArgs object_ =
 type alias ArtistsOptionalArguments =
     { page : OptionalArgument Int
     , per_page : OptionalArgument Int
+    , filter : OptionalArgument String
+    , order_by : OptionalArgument String
     }
 
 
@@ -42,10 +44,10 @@ artists : (ArtistsOptionalArguments -> ArtistsOptionalArguments) -> SelectionSet
 artists fillInOptionals object_ =
     let
         filledInOptionals =
-            fillInOptionals { page = Absent, per_page = Absent }
+            fillInOptionals { page = Absent, per_page = Absent, filter = Absent, order_by = Absent }
 
         optionalArgs =
-            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int ]
+            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int, Argument.optional "filter" filledInOptionals.filter Encode.string, Argument.optional "order_by" filledInOptionals.order_by Encode.string ]
                 |> List.filterMap identity
     in
     Object.selectionForCompositeField "artists" optionalArgs object_ (identity >> Decode.list)
@@ -65,6 +67,8 @@ artwork requiredArgs object_ =
 type alias ArtworksOptionalArguments =
     { page : OptionalArgument Int
     , per_page : OptionalArgument Int
+    , filter : OptionalArgument String
+    , order_by : OptionalArgument String
     }
 
 
@@ -74,10 +78,10 @@ artworks : (ArtworksOptionalArguments -> ArtworksOptionalArguments) -> Selection
 artworks fillInOptionals object_ =
     let
         filledInOptionals =
-            fillInOptionals { page = Absent, per_page = Absent }
+            fillInOptionals { page = Absent, per_page = Absent, filter = Absent, order_by = Absent }
 
         optionalArgs =
-            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int ]
+            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int, Argument.optional "filter" filledInOptionals.filter Encode.string, Argument.optional "order_by" filledInOptionals.order_by Encode.string ]
                 |> List.filterMap identity
     in
     Object.selectionForCompositeField "artworks" optionalArgs object_ (identity >> Decode.list)
@@ -97,6 +101,8 @@ exhibition requiredArgs object_ =
 type alias ExhibitionsOptionalArguments =
     { page : OptionalArgument Int
     , per_page : OptionalArgument Int
+    , filter : OptionalArgument String
+    , order_by : OptionalArgument String
     }
 
 
@@ -106,45 +112,13 @@ exhibitions : (ExhibitionsOptionalArguments -> ExhibitionsOptionalArguments) -> 
 exhibitions fillInOptionals object_ =
     let
         filledInOptionals =
-            fillInOptionals { page = Absent, per_page = Absent }
+            fillInOptionals { page = Absent, per_page = Absent, filter = Absent, order_by = Absent }
 
         optionalArgs =
-            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int ]
+            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int, Argument.optional "filter" filledInOptionals.filter Encode.string, Argument.optional "order_by" filledInOptionals.order_by Encode.string ]
                 |> List.filterMap identity
     in
     Object.selectionForCompositeField "exhibitions" optionalArgs object_ (identity >> Decode.list)
-
-
-type alias ExposedArtworkRequiredArguments =
-    { id : String }
-
-
-{-| Returns a ExposedArtwork
--}
-exposed_artwork : ExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet decodesTo RootQuery
-exposed_artwork requiredArgs object_ =
-    Object.selectionForCompositeField "exposed_artwork" [ Argument.required "id" requiredArgs.id Encode.string ] object_ identity
-
-
-type alias ExposedArtworksOptionalArguments =
-    { page : OptionalArgument Int
-    , per_page : OptionalArgument Int
-    }
-
-
-{-| Returns a ExposedArtwork
--}
-exposed_artworks : (ExposedArtworksOptionalArguments -> ExposedArtworksOptionalArguments) -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (List decodesTo) RootQuery
-exposed_artworks fillInOptionals object_ =
-    let
-        filledInOptionals =
-            fillInOptionals { page = Absent, per_page = Absent }
-
-        optionalArgs =
-            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int ]
-                |> List.filterMap identity
-    in
-    Object.selectionForCompositeField "exposed_artworks" optionalArgs object_ (identity >> Decode.list)
 
 
 {-| Returns the current user
@@ -157,6 +131,8 @@ me object_ =
 type alias SubscribedQueriesOptionalArguments =
     { page : OptionalArgument Int
     , per_page : OptionalArgument Int
+    , filter : OptionalArgument String
+    , order_by : OptionalArgument String
     }
 
 
@@ -166,10 +142,10 @@ subscribed_queries : (SubscribedQueriesOptionalArguments -> SubscribedQueriesOpt
 subscribed_queries fillInOptionals object_ =
     let
         filledInOptionals =
-            fillInOptionals { page = Absent, per_page = Absent }
+            fillInOptionals { page = Absent, per_page = Absent, filter = Absent, order_by = Absent }
 
         optionalArgs =
-            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int ]
+            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int, Argument.optional "filter" filledInOptionals.filter Encode.string, Argument.optional "order_by" filledInOptionals.order_by Encode.string ]
                 |> List.filterMap identity
     in
     Object.selectionForCompositeField "subscribed_queries" optionalArgs object_ (identity >> Decode.list)
@@ -200,6 +176,8 @@ user requiredArgs object_ =
 type alias UsersOptionalArguments =
     { page : OptionalArgument Int
     , per_page : OptionalArgument Int
+    , filter : OptionalArgument String
+    , order_by : OptionalArgument String
     }
 
 
@@ -209,10 +187,10 @@ users : (UsersOptionalArguments -> UsersOptionalArguments) -> SelectionSet decod
 users fillInOptionals object_ =
     let
         filledInOptionals =
-            fillInOptionals { page = Absent, per_page = Absent }
+            fillInOptionals { page = Absent, per_page = Absent, filter = Absent, order_by = Absent }
 
         optionalArgs =
-            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int ]
+            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int, Argument.optional "filter" filledInOptionals.filter Encode.string, Argument.optional "order_by" filledInOptionals.order_by Encode.string ]
                 |> List.filterMap identity
     in
     Object.selectionForCompositeField "users" optionalArgs object_ (identity >> Decode.list)
@@ -232,6 +210,8 @@ websocket_connection requiredArgs object_ =
 type alias WebsocketConnectionsOptionalArguments =
     { page : OptionalArgument Int
     , per_page : OptionalArgument Int
+    , filter : OptionalArgument String
+    , order_by : OptionalArgument String
     }
 
 
@@ -241,10 +221,10 @@ websocket_connections : (WebsocketConnectionsOptionalArguments -> WebsocketConne
 websocket_connections fillInOptionals object_ =
     let
         filledInOptionals =
-            fillInOptionals { page = Absent, per_page = Absent }
+            fillInOptionals { page = Absent, per_page = Absent, filter = Absent, order_by = Absent }
 
         optionalArgs =
-            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int ]
+            [ Argument.optional "page" filledInOptionals.page Encode.int, Argument.optional "per_page" filledInOptionals.per_page Encode.int, Argument.optional "filter" filledInOptionals.filter Encode.string, Argument.optional "order_by" filledInOptionals.order_by Encode.string ]
                 |> List.filterMap identity
     in
     Object.selectionForCompositeField "websocket_connections" optionalArgs object_ (identity >> Decode.list)

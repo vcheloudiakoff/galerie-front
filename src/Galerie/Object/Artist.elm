@@ -19,6 +19,16 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
 
 
+artwork_ids : SelectionSet (Maybe (List (Maybe String))) Galerie.Object.Artist
+artwork_ids =
+    Object.selectionForField "(Maybe (List (Maybe String)))" "artwork_ids" [] (Decode.string |> Decode.nullable |> Decode.list |> Decode.nullable)
+
+
+artworks : SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (Maybe (List (Maybe decodesTo))) Galerie.Object.Artist
+artworks object_ =
+    Object.selectionForCompositeField "artworks" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
 created_at : SelectionSet (Maybe String) Galerie.Object.Artist
 created_at =
     Object.selectionForField "(Maybe String)" "created_at" [] (Decode.string |> Decode.nullable)
@@ -27,6 +37,16 @@ created_at =
 description : SelectionSet (Maybe String) Galerie.Object.Artist
 description =
     Object.selectionForField "(Maybe String)" "description" [] (Decode.string |> Decode.nullable)
+
+
+exhibition_ids : SelectionSet (Maybe (List (Maybe String))) Galerie.Object.Artist
+exhibition_ids =
+    Object.selectionForField "(Maybe (List (Maybe String)))" "exhibition_ids" [] (Decode.string |> Decode.nullable |> Decode.list |> Decode.nullable)
+
+
+exhibitions : SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (Maybe (List (Maybe decodesTo))) Galerie.Object.Artist
+exhibitions object_ =
+    Object.selectionForCompositeField "exhibitions" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
 
 
 first_name : SelectionSet (Maybe String) Galerie.Object.Artist

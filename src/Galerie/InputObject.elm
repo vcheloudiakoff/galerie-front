@@ -22,9 +22,9 @@ buildArtistInputType required fillOptionals =
     let
         optionals =
             fillOptionals
-                { first_name = Absent, last_name = Absent, description = Absent, preview_artwork_id = Absent }
+                { exhibition_ids = Absent, artwork_ids = Absent, first_name = Absent, last_name = Absent, description = Absent, preview_artwork_id = Absent }
     in
-    { first_name = optionals.first_name, last_name = optionals.last_name, nickname = required.nickname, description = optionals.description, preview_artwork_id = optionals.preview_artwork_id }
+    { exhibition_ids = optionals.exhibition_ids, artwork_ids = optionals.artwork_ids, first_name = optionals.first_name, last_name = optionals.last_name, nickname = required.nickname, description = optionals.description, preview_artwork_id = optionals.preview_artwork_id }
 
 
 type alias ArtistInputTypeRequiredFields =
@@ -32,7 +32,9 @@ type alias ArtistInputTypeRequiredFields =
 
 
 type alias ArtistInputTypeOptionalFields =
-    { first_name : OptionalArgument String
+    { exhibition_ids : OptionalArgument (List (Maybe String))
+    , artwork_ids : OptionalArgument (List (Maybe String))
+    , first_name : OptionalArgument String
     , last_name : OptionalArgument String
     , description : OptionalArgument String
     , preview_artwork_id : OptionalArgument String
@@ -42,7 +44,9 @@ type alias ArtistInputTypeOptionalFields =
 {-| Type for the ArtistInputType input object.
 -}
 type alias ArtistInputType =
-    { first_name : OptionalArgument String
+    { exhibition_ids : OptionalArgument (List (Maybe String))
+    , artwork_ids : OptionalArgument (List (Maybe String))
+    , first_name : OptionalArgument String
     , last_name : OptionalArgument String
     , nickname : String
     , description : OptionalArgument String
@@ -55,21 +59,25 @@ type alias ArtistInputType =
 encodeArtistInputType : ArtistInputType -> Value
 encodeArtistInputType input =
     Encode.maybeObject
-        [ ( "first_name", Encode.string |> Encode.optional input.first_name ), ( "last_name", Encode.string |> Encode.optional input.last_name ), ( "nickname", Encode.string input.nickname |> Just ), ( "description", Encode.string |> Encode.optional input.description ), ( "preview_artwork_id", Encode.string |> Encode.optional input.preview_artwork_id ) ]
+        [ ( "exhibition_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.exhibition_ids ), ( "artwork_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.artwork_ids ), ( "first_name", Encode.string |> Encode.optional input.first_name ), ( "last_name", Encode.string |> Encode.optional input.last_name ), ( "nickname", Encode.string input.nickname |> Just ), ( "description", Encode.string |> Encode.optional input.description ), ( "preview_artwork_id", Encode.string |> Encode.optional input.preview_artwork_id ) ]
 
 
-buildArtworkInputType : (ArtworkInputTypeOptionalFields -> ArtworkInputTypeOptionalFields) -> ArtworkInputType
-buildArtworkInputType fillOptionals =
+buildArtworkInputType : ArtworkInputTypeRequiredFields -> (ArtworkInputTypeOptionalFields -> ArtworkInputTypeOptionalFields) -> ArtworkInputType
+buildArtworkInputType required fillOptionals =
     let
         optionals =
             fillOptionals
-                { image_url = Absent, title = Absent, description = Absent, techniques = Absent, support = Absent, height = Absent, width = Absent, artist_id = Absent }
+                { exhibition_ids = Absent, title = Absent, description = Absent, techniques = Absent, support = Absent, height = Absent, width = Absent, artist_id = Absent }
     in
-    { image_url = optionals.image_url, title = optionals.title, description = optionals.description, techniques = optionals.techniques, support = optionals.support, height = optionals.height, width = optionals.width, artist_id = optionals.artist_id }
+    { exhibition_ids = optionals.exhibition_ids, image_url = required.image_url, title = optionals.title, description = optionals.description, techniques = optionals.techniques, support = optionals.support, height = optionals.height, width = optionals.width, artist_id = optionals.artist_id }
+
+
+type alias ArtworkInputTypeRequiredFields =
+    { image_url : String }
 
 
 type alias ArtworkInputTypeOptionalFields =
-    { image_url : OptionalArgument String
+    { exhibition_ids : OptionalArgument (List (Maybe String))
     , title : OptionalArgument String
     , description : OptionalArgument String
     , techniques : OptionalArgument String
@@ -83,7 +91,8 @@ type alias ArtworkInputTypeOptionalFields =
 {-| Type for the ArtworkInputType input object.
 -}
 type alias ArtworkInputType =
-    { image_url : OptionalArgument String
+    { exhibition_ids : OptionalArgument (List (Maybe String))
+    , image_url : String
     , title : OptionalArgument String
     , description : OptionalArgument String
     , techniques : OptionalArgument String
@@ -99,7 +108,7 @@ type alias ArtworkInputType =
 encodeArtworkInputType : ArtworkInputType -> Value
 encodeArtworkInputType input =
     Encode.maybeObject
-        [ ( "image_url", Encode.string |> Encode.optional input.image_url ), ( "title", Encode.string |> Encode.optional input.title ), ( "description", Encode.string |> Encode.optional input.description ), ( "techniques", Encode.string |> Encode.optional input.techniques ), ( "support", Encode.string |> Encode.optional input.support ), ( "height", Encode.float |> Encode.optional input.height ), ( "width", Encode.float |> Encode.optional input.width ), ( "artist_id", Encode.string |> Encode.optional input.artist_id ) ]
+        [ ( "exhibition_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.exhibition_ids ), ( "image_url", Encode.string input.image_url |> Just ), ( "title", Encode.string |> Encode.optional input.title ), ( "description", Encode.string |> Encode.optional input.description ), ( "techniques", Encode.string |> Encode.optional input.techniques ), ( "support", Encode.string |> Encode.optional input.support ), ( "height", Encode.float |> Encode.optional input.height ), ( "width", Encode.float |> Encode.optional input.width ), ( "artist_id", Encode.string |> Encode.optional input.artist_id ) ]
 
 
 buildExhibitionInputType : (ExhibitionInputTypeOptionalFields -> ExhibitionInputTypeOptionalFields) -> ExhibitionInputType
@@ -107,13 +116,14 @@ buildExhibitionInputType fillOptionals =
     let
         optionals =
             fillOptionals
-                { title = Absent, description = Absent, beginning_date = Absent, ending_date = Absent, artist_id = Absent }
+                { artwork_ids = Absent, title = Absent, description = Absent, beginning_date = Absent, ending_date = Absent, artist_id = Absent }
     in
-    { title = optionals.title, description = optionals.description, beginning_date = optionals.beginning_date, ending_date = optionals.ending_date, artist_id = optionals.artist_id }
+    { artwork_ids = optionals.artwork_ids, title = optionals.title, description = optionals.description, beginning_date = optionals.beginning_date, ending_date = optionals.ending_date, artist_id = optionals.artist_id }
 
 
 type alias ExhibitionInputTypeOptionalFields =
-    { title : OptionalArgument String
+    { artwork_ids : OptionalArgument (List (Maybe String))
+    , title : OptionalArgument String
     , description : OptionalArgument String
     , beginning_date : OptionalArgument String
     , ending_date : OptionalArgument String
@@ -124,7 +134,8 @@ type alias ExhibitionInputTypeOptionalFields =
 {-| Type for the ExhibitionInputType input object.
 -}
 type alias ExhibitionInputType =
-    { title : OptionalArgument String
+    { artwork_ids : OptionalArgument (List (Maybe String))
+    , title : OptionalArgument String
     , description : OptionalArgument String
     , beginning_date : OptionalArgument String
     , ending_date : OptionalArgument String
@@ -137,39 +148,7 @@ type alias ExhibitionInputType =
 encodeExhibitionInputType : ExhibitionInputType -> Value
 encodeExhibitionInputType input =
     Encode.maybeObject
-        [ ( "title", Encode.string |> Encode.optional input.title ), ( "description", Encode.string |> Encode.optional input.description ), ( "beginning_date", Encode.string |> Encode.optional input.beginning_date ), ( "ending_date", Encode.string |> Encode.optional input.ending_date ), ( "artist_id", Encode.string |> Encode.optional input.artist_id ) ]
-
-
-buildExposedArtworkInputType : (ExposedArtworkInputTypeOptionalFields -> ExposedArtworkInputTypeOptionalFields) -> ExposedArtworkInputType
-buildExposedArtworkInputType fillOptionals =
-    let
-        optionals =
-            fillOptionals
-                { artwork_id = Absent, exhibition_id = Absent }
-    in
-    { artwork_id = optionals.artwork_id, exhibition_id = optionals.exhibition_id }
-
-
-type alias ExposedArtworkInputTypeOptionalFields =
-    { artwork_id : OptionalArgument String
-    , exhibition_id : OptionalArgument String
-    }
-
-
-{-| Type for the ExposedArtworkInputType input object.
--}
-type alias ExposedArtworkInputType =
-    { artwork_id : OptionalArgument String
-    , exhibition_id : OptionalArgument String
-    }
-
-
-{-| Encode a ExposedArtworkInputType into a value that can be used as an argument.
--}
-encodeExposedArtworkInputType : ExposedArtworkInputType -> Value
-encodeExposedArtworkInputType input =
-    Encode.maybeObject
-        [ ( "artwork_id", Encode.string |> Encode.optional input.artwork_id ), ( "exhibition_id", Encode.string |> Encode.optional input.exhibition_id ) ]
+        [ ( "artwork_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.artwork_ids ), ( "title", Encode.string |> Encode.optional input.title ), ( "description", Encode.string |> Encode.optional input.description ), ( "beginning_date", Encode.string |> Encode.optional input.beginning_date ), ( "ending_date", Encode.string |> Encode.optional input.ending_date ), ( "artist_id", Encode.string |> Encode.optional input.artist_id ) ]
 
 
 buildSubscribedQueryInputType : (SubscribedQueryInputTypeOptionalFields -> SubscribedQueryInputTypeOptionalFields) -> SubscribedQueryInputType
@@ -211,13 +190,14 @@ buildUserInputType fillOptionals =
     let
         optionals =
             fillOptionals
-                { first_name = Absent, last_name = Absent, email = Absent }
+                { websocket_connection_ids = Absent, first_name = Absent, last_name = Absent, email = Absent }
     in
-    { first_name = optionals.first_name, last_name = optionals.last_name, email = optionals.email }
+    { websocket_connection_ids = optionals.websocket_connection_ids, first_name = optionals.first_name, last_name = optionals.last_name, email = optionals.email }
 
 
 type alias UserInputTypeOptionalFields =
-    { first_name : OptionalArgument String
+    { websocket_connection_ids : OptionalArgument (List (Maybe String))
+    , first_name : OptionalArgument String
     , last_name : OptionalArgument String
     , email : OptionalArgument String
     }
@@ -226,7 +206,8 @@ type alias UserInputTypeOptionalFields =
 {-| Type for the UserInputType input object.
 -}
 type alias UserInputType =
-    { first_name : OptionalArgument String
+    { websocket_connection_ids : OptionalArgument (List (Maybe String))
+    , first_name : OptionalArgument String
     , last_name : OptionalArgument String
     , email : OptionalArgument String
     }
@@ -237,7 +218,7 @@ type alias UserInputType =
 encodeUserInputType : UserInputType -> Value
 encodeUserInputType input =
     Encode.maybeObject
-        [ ( "first_name", Encode.string |> Encode.optional input.first_name ), ( "last_name", Encode.string |> Encode.optional input.last_name ), ( "email", Encode.string |> Encode.optional input.email ) ]
+        [ ( "websocket_connection_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.websocket_connection_ids ), ( "first_name", Encode.string |> Encode.optional input.first_name ), ( "last_name", Encode.string |> Encode.optional input.last_name ), ( "email", Encode.string |> Encode.optional input.email ) ]
 
 
 buildWebsocketConnectionInputType : (WebsocketConnectionInputTypeOptionalFields -> WebsocketConnectionInputTypeOptionalFields) -> WebsocketConnectionInputType
@@ -245,13 +226,14 @@ buildWebsocketConnectionInputType fillOptionals =
     let
         optionals =
             fillOptionals
-                { user_id = Absent, connection_identifier = Absent }
+                { subscribed_query_ids = Absent, user_id = Absent, connection_identifier = Absent }
     in
-    { user_id = optionals.user_id, connection_identifier = optionals.connection_identifier }
+    { subscribed_query_ids = optionals.subscribed_query_ids, user_id = optionals.user_id, connection_identifier = optionals.connection_identifier }
 
 
 type alias WebsocketConnectionInputTypeOptionalFields =
-    { user_id : OptionalArgument String
+    { subscribed_query_ids : OptionalArgument (List (Maybe String))
+    , user_id : OptionalArgument String
     , connection_identifier : OptionalArgument String
     }
 
@@ -259,7 +241,8 @@ type alias WebsocketConnectionInputTypeOptionalFields =
 {-| Type for the WebsocketConnectionInputType input object.
 -}
 type alias WebsocketConnectionInputType =
-    { user_id : OptionalArgument String
+    { subscribed_query_ids : OptionalArgument (List (Maybe String))
+    , user_id : OptionalArgument String
     , connection_identifier : OptionalArgument String
     }
 
@@ -269,4 +252,4 @@ type alias WebsocketConnectionInputType =
 encodeWebsocketConnectionInputType : WebsocketConnectionInputType -> Value
 encodeWebsocketConnectionInputType input =
     Encode.maybeObject
-        [ ( "user_id", Encode.string |> Encode.optional input.user_id ), ( "connection_identifier", Encode.string |> Encode.optional input.connection_identifier ) ]
+        [ ( "subscribed_query_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.subscribed_query_ids ), ( "user_id", Encode.string |> Encode.optional input.user_id ), ( "connection_identifier", Encode.string |> Encode.optional input.connection_identifier ) ]

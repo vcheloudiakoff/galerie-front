@@ -34,6 +34,16 @@ id =
     Object.selectionForField "String" "id" [] Decode.string
 
 
+subscribed_queries : SelectionSet decodesTo Galerie.Object.SubscribedQuery -> SelectionSet (Maybe (List (Maybe decodesTo))) Galerie.Object.WebsocketConnection
+subscribed_queries object_ =
+    Object.selectionForCompositeField "subscribed_queries" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
+subscribed_query_ids : SelectionSet (Maybe (List (Maybe String))) Galerie.Object.WebsocketConnection
+subscribed_query_ids =
+    Object.selectionForField "(Maybe (List (Maybe String)))" "subscribed_query_ids" [] (Decode.string |> Decode.nullable |> Decode.list |> Decode.nullable)
+
+
 updated_at : SelectionSet (Maybe String) Galerie.Object.WebsocketConnection
 updated_at =
     Object.selectionForField "(Maybe String)" "updated_at" [] (Decode.string |> Decode.nullable)

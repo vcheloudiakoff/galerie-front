@@ -17,10 +17,6 @@ type Exhibition
     = Exhibition
 
 
-type ExposedArtwork
-    = ExposedArtwork
-
-
 type SubscribedQuery
     = SubscribedQuery
 

@@ -5,6 +5,7 @@ module Main exposing (..)
 import Browser
 import Galerie.Object
 import Galerie.Object.Artist as Artist
+import Galerie.Object.Artwork as Artwork
 import Galerie.Query as Query
 import Graphql.Document as Document
 import Graphql.Http
@@ -26,23 +27,30 @@ type alias Response =
     }
 
 
-
--- type alias Artwork =
---     { urlImg : String
---     }
+type alias ArtworkLookup =
+    { image_url : String
+    }
 
 
 type alias ArtistLookup =
     { nickname : String
     , id : String
+    , preview_artwork : Maybe ArtworkLookup
     }
 
 
 artist : SelectionSet ArtistLookup Galerie.Object.Artist
 artist =
-    SelectionSet.map2 ArtistLookup
+    SelectionSet.map3 ArtistLookup
         Artist.nickname
         Artist.id
+        (Artist.preview_artwork preview_artwork)
+
+
+preview_artwork : SelectionSet ArtworkLookup Galerie.Object.Artwork
+preview_artwork =
+    SelectionSet.map ArtworkLookup
+        Artwork.image_url
 
 
 
@@ -66,7 +74,7 @@ makeRequest =
 query : SelectionSet Response RootQuery
 query =
     SelectionSet.map Response
-        (Query.artists (\n -> { n | page = Present 1, per_page = Present 1 }) artist)
+        (Query.artists (\n -> { n | order_by = Present "nickname asc" }) artist)
 
 
 

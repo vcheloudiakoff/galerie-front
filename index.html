@@ -5585,6 +5585,7 @@ var author$project$PrintAny$viewWithConfig = F2(
 var author$project$PrintAny$view = function (record) {
 	return A2(author$project$PrintAny$viewWithConfig, author$project$PrintAny$defaultConfig, record);
 };
+var elm$core$Debug$log = _Debug_log;
 var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$h1 = _VirtualDom_node('h1');
 var author$project$Helpers$Main$view = F2(
@@ -5635,7 +5636,8 @@ var author$project$Helpers$Main$view = F2(
 										[
 											elm$html$Html$text('Response')
 										])),
-									author$project$PrintAny$view(model.subModel)
+									author$project$PrintAny$view(
+									A2(elm$core$Debug$log, 'SUBMODEL', model.subModel))
 								]))
 						]))
 				]),
@@ -5877,12 +5879,27 @@ var dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$Argument = F2(
 	function (a, b) {
 		return {$: 'Argument', a: a, b: b};
 	});
-var dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$required = F3(
-	function (fieldName, raw, encode) {
-		return A2(
-			dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$Argument,
-			fieldName,
-			encode(raw));
+var dillonkearns$elm_graphql$Graphql$Internal$Encode$Json = function (a) {
+	return {$: 'Json', a: a};
+};
+var elm$json$Json$Encode$null = _Json_encodeNull;
+var dillonkearns$elm_graphql$Graphql$Internal$Encode$null = dillonkearns$elm_graphql$Graphql$Internal$Encode$Json(elm$json$Json$Encode$null);
+var dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$optional = F3(
+	function (fieldName, maybeValue, toValue) {
+		switch (maybeValue.$) {
+			case 'Present':
+				var value = maybeValue.a;
+				return elm$core$Maybe$Just(
+					A2(
+						dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$Argument,
+						fieldName,
+						toValue(value)));
+			case 'Absent':
+				return elm$core$Maybe$Nothing;
+			default:
+				return elm$core$Maybe$Just(
+					A2(dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$Argument, fieldName, dillonkearns$elm_graphql$Graphql$Internal$Encode$null));
+		}
 	});
 var Skinney$murmur3$Murmur3$HashData = F4(
 	function (shift, seed, hash, charsProcessed) {
@@ -6110,27 +6127,63 @@ var dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForComposi
 					A3(dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$composite, fieldName, args, fields)),
 				decoderTransform(decoder)));
 	});
-var dillonkearns$elm_graphql$Graphql$Internal$Encode$Json = function (a) {
-	return {$: 'Json', a: a};
+var elm$json$Json$Encode$int = _Json_wrap;
+var dillonkearns$elm_graphql$Graphql$Internal$Encode$int = function (value) {
+	return dillonkearns$elm_graphql$Graphql$Internal$Encode$Json(
+		elm$json$Json$Encode$int(value));
 };
 var dillonkearns$elm_graphql$Graphql$Internal$Encode$string = function (value) {
 	return dillonkearns$elm_graphql$Graphql$Internal$Encode$Json(
 		elm$json$Json$Encode$string(value));
 };
-var author$project$Galerie$Query$artist = F2(
-	function (requiredArgs, object_) {
-		return A4(
-			dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForCompositeField,
-			'artist',
+var dillonkearns$elm_graphql$Graphql$OptionalArgument$Absent = {$: 'Absent'};
+var elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _n0 = f(mx);
+		if (_n0.$ === 'Just') {
+			var x = _n0.a;
+			return A2(elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			elm$core$List$foldr,
+			elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
+var elm$json$Json$Decode$list = _Json_decodeList;
+var author$project$Galerie$Query$artists = F2(
+	function (fillInOptionals, object_) {
+		var filledInOptionals = fillInOptionals(
+			{filter: dillonkearns$elm_graphql$Graphql$OptionalArgument$Absent, order_by: dillonkearns$elm_graphql$Graphql$OptionalArgument$Absent, page: dillonkearns$elm_graphql$Graphql$OptionalArgument$Absent, per_page: dillonkearns$elm_graphql$Graphql$OptionalArgument$Absent});
+		var optionalArgs = A2(
+			elm$core$List$filterMap,
+			elm$core$Basics$identity,
 			_List_fromArray(
 				[
-					A3(dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$required, 'id', requiredArgs.id, dillonkearns$elm_graphql$Graphql$Internal$Encode$string)
-				]),
+					A3(dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$optional, 'page', filledInOptionals.page, dillonkearns$elm_graphql$Graphql$Internal$Encode$int),
+					A3(dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$optional, 'per_page', filledInOptionals.per_page, dillonkearns$elm_graphql$Graphql$Internal$Encode$int),
+					A3(dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$optional, 'filter', filledInOptionals.filter, dillonkearns$elm_graphql$Graphql$Internal$Encode$string),
+					A3(dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$optional, 'order_by', filledInOptionals.order_by, dillonkearns$elm_graphql$Graphql$Internal$Encode$string)
+				]));
+		return A4(
+			dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForCompositeField,
+			'artists',
+			optionalArgs,
 			object_,
-			elm$core$Basics$identity);
+			A2(elm$core$Basics$composeR, elm$core$Basics$identity, elm$json$Json$Decode$list));
 	});
-var author$project$Main$Response = function (vincent) {
-	return {vincent: vincent};
+var author$project$Main$Response = function (artists) {
+	return {artists: artists};
 };
 var dillonkearns$elm_graphql$Graphql$RawField$Leaf = F2(
 	function (a, b) {
@@ -6158,22 +6211,32 @@ var dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForField =
 var elm$json$Json$Decode$string = _Json_decodeString;
 var author$project$Galerie$Object$Artist$id = A4(dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForField, 'String', 'id', _List_Nil, elm$json$Json$Decode$string);
 var author$project$Galerie$Object$Artist$nickname = A4(dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForField, 'String', 'nickname', _List_Nil, elm$json$Json$Decode$string);
-var author$project$Main$ArtistLookup = F2(
-	function (nickname, id) {
-		return {id: id, nickname: nickname};
+var elm$json$Json$Decode$null = _Json_decodeNull;
+var elm$json$Json$Decode$oneOf = _Json_oneOf;
+var elm$json$Json$Decode$nullable = function (decoder) {
+	return elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				elm$json$Json$Decode$null(elm$core$Maybe$Nothing),
+				A2(elm$json$Json$Decode$map, elm$core$Maybe$Just, decoder)
+			]));
+};
+var author$project$Galerie$Object$Artist$preview_artwork = function (object_) {
+	return A4(
+		dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForCompositeField,
+		'preview_artwork',
+		_List_Nil,
+		object_,
+		A2(elm$core$Basics$composeR, elm$core$Basics$identity, elm$json$Json$Decode$nullable));
+};
+var author$project$Main$ArtistLookup = F3(
+	function (nickname, id, preview_artwork) {
+		return {id: id, nickname: nickname, preview_artwork: preview_artwork};
 	});
-var dillonkearns$elm_graphql$Graphql$SelectionSet$map2 = F3(
-	function (combine, _n0, _n1) {
-		var selectionFields1 = _n0.a;
-		var selectionDecoder1 = _n0.b;
-		var selectionFields2 = _n1.a;
-		var selectionDecoder2 = _n1.b;
-		return A2(
-			dillonkearns$elm_graphql$Graphql$SelectionSet$SelectionSet,
-			_Utils_ap(selectionFields1, selectionFields2),
-			A3(elm$json$Json$Decode$map2, combine, selectionDecoder1, selectionDecoder2));
-	});
-var author$project$Main$artist = A3(dillonkearns$elm_graphql$Graphql$SelectionSet$map2, author$project$Main$ArtistLookup, author$project$Galerie$Object$Artist$nickname, author$project$Galerie$Object$Artist$id);
+var author$project$Galerie$Object$Artwork$image_url = A4(dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForField, 'String', 'image_url', _List_Nil, elm$json$Json$Decode$string);
+var author$project$Main$ArtworkLookup = function (image_url) {
+	return {image_url: image_url};
+};
 var dillonkearns$elm_graphql$Graphql$SelectionSet$map = F2(
 	function (mapFunction, _n0) {
 		var selectionFields = _n0.a;
@@ -6183,12 +6246,44 @@ var dillonkearns$elm_graphql$Graphql$SelectionSet$map = F2(
 			selectionFields,
 			A2(elm$json$Json$Decode$map, mapFunction, selectionDecoder));
 	});
+var author$project$Main$preview_artwork = A2(dillonkearns$elm_graphql$Graphql$SelectionSet$map, author$project$Main$ArtworkLookup, author$project$Galerie$Object$Artwork$image_url);
+var elm$json$Json$Decode$map3 = _Json_map3;
+var dillonkearns$elm_graphql$Graphql$SelectionSet$map3 = F4(
+	function (combine, _n0, _n1, _n2) {
+		var selectionFields1 = _n0.a;
+		var selectionDecoder1 = _n0.b;
+		var selectionFields2 = _n1.a;
+		var selectionDecoder2 = _n1.b;
+		var selectionFields3 = _n2.a;
+		var selectionDecoder3 = _n2.b;
+		return A2(
+			dillonkearns$elm_graphql$Graphql$SelectionSet$SelectionSet,
+			elm$core$List$concat(
+				_List_fromArray(
+					[selectionFields1, selectionFields2, selectionFields3])),
+			A4(elm$json$Json$Decode$map3, combine, selectionDecoder1, selectionDecoder2, selectionDecoder3));
+	});
+var author$project$Main$artist = A4(
+	dillonkearns$elm_graphql$Graphql$SelectionSet$map3,
+	author$project$Main$ArtistLookup,
+	author$project$Galerie$Object$Artist$nickname,
+	author$project$Galerie$Object$Artist$id,
+	author$project$Galerie$Object$Artist$preview_artwork(author$project$Main$preview_artwork));
+var dillonkearns$elm_graphql$Graphql$OptionalArgument$Present = function (a) {
+	return {$: 'Present', a: a};
+};
 var author$project$Main$query = A2(
 	dillonkearns$elm_graphql$Graphql$SelectionSet$map,
 	author$project$Main$Response,
 	A2(
-		author$project$Galerie$Query$artist,
-		{id: '8aefadc3-7fe6-4ccd-a1ea-73150b208101'},
+		author$project$Galerie$Query$artists,
+		function (n) {
+			return _Utils_update(
+				n,
+				{
+					order_by: dillonkearns$elm_graphql$Graphql$OptionalArgument$Present('nickname asc')
+				});
+		},
 		author$project$Main$artist));
 var dillonkearns$elm_graphql$Graphql$Document$decoder = function (_n0) {
 	var fields = _n0.a;
@@ -6253,11 +6348,6 @@ var dillonkearns$elm_graphql$Graphql$Http$BadUrl = function (a) {
 };
 var dillonkearns$elm_graphql$Graphql$Http$NetworkError = {$: 'NetworkError'};
 var dillonkearns$elm_graphql$Graphql$Http$Timeout = {$: 'Timeout'};
-var elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
 var elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var elm$core$Dict$empty = elm$core$Dict$RBEmpty_elm_builtin;
 var elm$core$Basics$compare = _Utils_compare;
@@ -6868,24 +6958,6 @@ var dillonkearns$elm_graphql$Graphql$Document$Indent$spaces = function (n) {
 var dillonkearns$elm_graphql$Graphql$Document$Indent$generate = function (indentationLevel) {
 	return dillonkearns$elm_graphql$Graphql$Document$Indent$spaces(indentationLevel * 2);
 };
-var elm$core$List$maybeCons = F3(
-	function (f, mx, xs) {
-		var _n0 = f(mx);
-		if (_n0.$ === 'Just') {
-			var x = _n0.a;
-			return A2(elm$core$List$cons, x, xs);
-		} else {
-			return xs;
-		}
-	});
-var elm$core$List$filterMap = F2(
-	function (f, xs) {
-		return A3(
-			elm$core$List$foldr,
-			elm$core$List$maybeCons(f),
-			_List_Nil,
-			xs);
-	});
 var dillonkearns$elm_graphql$Graphql$Document$Field$serialize = F3(
 	function (aliasName, mIndentationLevel, field) {
 		var prefix = function () {
@@ -7150,9 +7222,6 @@ var elm$json$Json$Decode$dict = function (decoder) {
 		elm$core$Dict$fromList,
 		elm$json$Json$Decode$keyValuePairs(decoder));
 };
-var elm$json$Json$Decode$list = _Json_decodeList;
-var elm$json$Json$Decode$map3 = _Json_map3;
-var elm$json$Json$Decode$oneOf = _Json_oneOf;
 var elm$json$Json$Decode$maybe = function (decoder) {
 	return elm$json$Json$Decode$oneOf(
 		_List_fromArray(
@@ -7597,14 +7666,15 @@ var krisajenkins$remotedata$RemoteData$fromResult = function (result) {
 var author$project$Main$makeRequest = A2(
 	dillonkearns$elm_graphql$Graphql$Http$send,
 	A2(elm$core$Basics$composeR, krisajenkins$remotedata$RemoteData$fromResult, author$project$Main$GotResponse),
-	A2(dillonkearns$elm_graphql$Graphql$Http$queryRequest, 'http://localhost:3000', author$project$Main$query));
+	A2(dillonkearns$elm_graphql$Graphql$Http$queryRequest, 'http://localhost:3000/graphql', author$project$Main$query));
 var krisajenkins$remotedata$RemoteData$Loading = {$: 'Loading'};
 var author$project$Main$init = function (_n0) {
 	return _Utils_Tuple2(krisajenkins$remotedata$RemoteData$Loading, author$project$Main$makeRequest);
 };
 var author$project$Main$update = F2(
 	function (msg, model) {
-		return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+		var response = msg.a;
+		return _Utils_Tuple2(response, elm$core$Platform$Cmd$none);
 	});
 var author$project$Main$main = author$project$Helpers$Main$document(
 	{

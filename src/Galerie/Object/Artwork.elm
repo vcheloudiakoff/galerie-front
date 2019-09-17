@@ -39,6 +39,16 @@ description =
     Object.selectionForField "(Maybe String)" "description" [] (Decode.string |> Decode.nullable)
 
 
+exhibition_ids : SelectionSet (Maybe (List (Maybe String))) Galerie.Object.Artwork
+exhibition_ids =
+    Object.selectionForField "(Maybe (List (Maybe String)))" "exhibition_ids" [] (Decode.string |> Decode.nullable |> Decode.list |> Decode.nullable)
+
+
+exhibitions : SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (Maybe (List (Maybe decodesTo))) Galerie.Object.Artwork
+exhibitions object_ =
+    Object.selectionForCompositeField "exhibitions" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
+
+
 height : SelectionSet (Maybe Float) Galerie.Object.Artwork
 height =
     Object.selectionForField "(Maybe Float)" "height" [] (Decode.float |> Decode.nullable)
@@ -49,9 +59,9 @@ id =
     Object.selectionForField "String" "id" [] Decode.string
 
 
-image_url : SelectionSet (Maybe String) Galerie.Object.Artwork
+image_url : SelectionSet String Galerie.Object.Artwork
 image_url =
-    Object.selectionForField "(Maybe String)" "image_url" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "image_url" [] Decode.string
 
 
 support : SelectionSet (Maybe String) Galerie.Object.Artwork

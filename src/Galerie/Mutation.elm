@@ -52,17 +52,6 @@ bulk_create_exhibition requiredArgs object_ =
     Object.selectionForCompositeField "bulk_create_exhibition" [ Argument.required "exhibition" requiredArgs.exhibition (Galerie.InputObject.encodeExhibitionInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
 
 
-type alias BulkCreateExposedArtworkRequiredArguments =
-    { exposed_artwork : List (Maybe Galerie.InputObject.ExposedArtworkInputType) }
-
-
-{-| creates some ExposedArtworks
--}
-bulk_create_exposed_artwork : BulkCreateExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
-bulk_create_exposed_artwork requiredArgs object_ =
-    Object.selectionForCompositeField "bulk_create_exposed_artwork" [ Argument.required "exposed_artwork" requiredArgs.exposed_artwork (Galerie.InputObject.encodeExposedArtworkInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
-
-
 type alias BulkCreateSubscribedQueryRequiredArguments =
     { subscribed_query : List (Maybe Galerie.InputObject.SubscribedQueryInputType) }
 
@@ -127,17 +116,6 @@ type alias BulkUpdateExhibitionRequiredArguments =
 bulk_update_exhibition : BulkUpdateExhibitionRequiredArguments -> SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
 bulk_update_exhibition requiredArgs object_ =
     Object.selectionForCompositeField "bulk_update_exhibition" [ Argument.required "exhibition" requiredArgs.exhibition (Galerie.InputObject.encodeExhibitionInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
-
-
-type alias BulkUpdateExposedArtworkRequiredArguments =
-    { exposed_artwork : List (Maybe Galerie.InputObject.ExposedArtworkInputType) }
-
-
-{-| Updates some ExposedArtworks
--}
-bulk_update_exposed_artwork : BulkUpdateExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (Maybe (List (Maybe decodesTo))) RootMutation
-bulk_update_exposed_artwork requiredArgs object_ =
-    Object.selectionForCompositeField "bulk_update_exposed_artwork" [ Argument.required "exposed_artwork" requiredArgs.exposed_artwork (Galerie.InputObject.encodeExposedArtworkInputType |> Encode.maybe |> Encode.list) ] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
 
 
 type alias BulkUpdateSubscribedQueryRequiredArguments =
@@ -206,17 +184,6 @@ create_exhibition requiredArgs object_ =
     Object.selectionForCompositeField "create_exhibition" [ Argument.required "exhibition" requiredArgs.exhibition Galerie.InputObject.encodeExhibitionInputType ] object_ (identity >> Decode.nullable)
 
 
-type alias CreateExposedArtworkRequiredArguments =
-    { exposed_artwork : Galerie.InputObject.ExposedArtworkInputType }
-
-
-{-| Creates a ExposedArtwork
--}
-create_exposed_artwork : CreateExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (Maybe decodesTo) RootMutation
-create_exposed_artwork requiredArgs object_ =
-    Object.selectionForCompositeField "create_exposed_artwork" [ Argument.required "exposed_artwork" requiredArgs.exposed_artwork Galerie.InputObject.encodeExposedArtworkInputType ] object_ (identity >> Decode.nullable)
-
-
 type alias CreateSubscribedQueryRequiredArguments =
     { subscribed_query : Galerie.InputObject.SubscribedQueryInputType }
 
@@ -281,17 +248,6 @@ type alias DestroyExhibitionRequiredArguments =
 destroy_exhibition : DestroyExhibitionRequiredArguments -> SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (Maybe decodesTo) RootMutation
 destroy_exhibition requiredArgs object_ =
     Object.selectionForCompositeField "destroy_exhibition" [ Argument.required "id" requiredArgs.id Encode.string ] object_ (identity >> Decode.nullable)
-
-
-type alias DestroyExposedArtworkRequiredArguments =
-    { id : String }
-
-
-{-| Destroys a ExposedArtwork
--}
-destroy_exposed_artwork : DestroyExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (Maybe decodesTo) RootMutation
-destroy_exposed_artwork requiredArgs object_ =
-    Object.selectionForCompositeField "destroy_exposed_artwork" [ Argument.required "id" requiredArgs.id Encode.string ] object_ (identity >> Decode.nullable)
 
 
 type alias DestroySubscribedQueryRequiredArguments =
@@ -394,29 +350,6 @@ update_exhibition fillInOptionals requiredArgs object_ =
                 |> List.filterMap identity
     in
     Object.selectionForCompositeField "update_exhibition" (optionalArgs ++ [ Argument.required "exhibition" requiredArgs.exhibition Galerie.InputObject.encodeExhibitionInputType ]) object_ (identity >> Decode.nullable)
-
-
-type alias UpdateExposedArtworkOptionalArguments =
-    { id : OptionalArgument String }
-
-
-type alias UpdateExposedArtworkRequiredArguments =
-    { exposed_artwork : Galerie.InputObject.ExposedArtworkInputType }
-
-
-{-| Updates a ExposedArtwork
--}
-update_exposed_artwork : (UpdateExposedArtworkOptionalArguments -> UpdateExposedArtworkOptionalArguments) -> UpdateExposedArtworkRequiredArguments -> SelectionSet decodesTo Galerie.Object.ExposedArtwork -> SelectionSet (Maybe decodesTo) RootMutation
-update_exposed_artwork fillInOptionals requiredArgs object_ =
-    let
-        filledInOptionals =
-            fillInOptionals { id = Absent }
-
-        optionalArgs =
-            [ Argument.optional "id" filledInOptionals.id Encode.string ]
-                |> List.filterMap identity
-    in
-    Object.selectionForCompositeField "update_exposed_artwork" (optionalArgs ++ [ Argument.required "exposed_artwork" requiredArgs.exposed_artwork Galerie.InputObject.encodeExposedArtworkInputType ]) object_ (identity >> Decode.nullable)
 
 
 type alias UpdateSubscribedQueryOptionalArguments =

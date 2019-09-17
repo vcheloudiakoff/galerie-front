@@ -47,3 +47,13 @@ last_name =
 updated_at : SelectionSet (Maybe String) Galerie.Object.User
 updated_at =
     Object.selectionForField "(Maybe String)" "updated_at" [] (Decode.string |> Decode.nullable)
+
+
+websocket_connection_ids : SelectionSet (Maybe (List (Maybe String))) Galerie.Object.User
+websocket_connection_ids =
+    Object.selectionForField "(Maybe (List (Maybe String)))" "websocket_connection_ids" [] (Decode.string |> Decode.nullable |> Decode.list |> Decode.nullable)
+
+
+websocket_connections : SelectionSet decodesTo Galerie.Object.WebsocketConnection -> SelectionSet (Maybe (List (Maybe decodesTo))) Galerie.Object.User
+websocket_connections object_ =
+    Object.selectionForCompositeField "websocket_connections" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
