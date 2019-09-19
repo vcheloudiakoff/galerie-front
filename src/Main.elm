@@ -115,6 +115,7 @@ init _ =
     ( initModel, makeRequest )
 
 
+initModel : Model
 initModel =
     { hideAliases = False
     , response = RemoteData.Loading
@@ -127,6 +128,7 @@ type alias Flags =
     ()
 
 
+main : Program Flags Model Msg
 main =
     Browser.document
         { init = init
