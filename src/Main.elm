@@ -1,7 +1,12 @@
 module Main exposing (..)
 
 -- import Galerie.Object.Artwork as Artwork
+-- import Html.Attributes exposing (alt, checked, href, src, type_)
+-- import Html.Events exposing (onClick)
 
+import BodyBuilder as B exposing (..)
+import BodyBuilder.Attributes exposing (checked, href, label)
+import BodyBuilder.Events exposing (onCheck, onClick)
 import Browser
 import Debug exposing (log)
 import Galerie.Object
@@ -13,9 +18,7 @@ import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
-import Html exposing (Html, a, div, h1, img, input, label, p, pre, text)
-import Html.Attributes exposing (alt, checked, href, src, type_)
-import Html.Events exposing (onClick)
+import Html exposing (pre, text)
 import PrintAny
 import Regex
 import RemoteData exposing (RemoteData)
@@ -26,8 +29,8 @@ import RemoteData exposing (RemoteData)
 
 
 type Msg
-    = ToggleAliases
-    | ToggleDebugView
+    = ToggleAliases Bool
+    | ToggleDebugView Bool
     | GotResponse (RemoteData (Graphql.Http.Error Response) Response)
 
 
@@ -85,11 +88,11 @@ update msg model =
                 _ ->
                     ( { model | response = response }, Cmd.none )
 
-        ToggleAliases ->
-            ( { model | hideAliases = not model.hideAliases }, Cmd.none )
+        ToggleAliases bool ->
+            ( { model | hideAliases = bool }, Cmd.none )
 
-        ToggleDebugView ->
-            ( { model | toggleDebugView = not model.toggleDebugView }, Cmd.none )
+        ToggleDebugView bool ->
+            ( { model | toggleDebugView = bool }, Cmd.none )
 
 
 makeRequest : Cmd Msg
@@ -130,7 +133,7 @@ type alias Flags =
 
 main : Program Flags Model Msg
 main =
-    Browser.document
+    B.element
         { init = init
         , update = update
         , subscriptions = \_ -> Sub.none
@@ -138,7 +141,7 @@ main =
         }
 
 
-chooseView : String -> Model -> Browser.Document Msg
+chooseView : String -> Model -> NodeWithStyle Msg
 chooseView query model =
     if model.toggleDebugView then
         debugView query model
@@ -147,44 +150,36 @@ chooseView query model =
         view query model
 
 
-view : String -> Model -> Browser.Document Msg
+view : String -> Model -> NodeWithStyle Msg
 view query model =
     let
         artists =
             model.artists
     in
-    { title = "Query Explorer"
-    , body =
-        [ div []
-            [ p [] [ toggleDebugViewCheckbox model ]
-            , div [] (List.map showPreviewArtwork artists)
-
-            -- , img [ alt "no image" src artist.preview_artwork.image_url ] []
-            ]
+    B.div []
+        [ B.p [] [ toggleDebugViewCheckbox model ]
+        , B.div [] (List.map showPreviewArtwork artists)
         ]
-    }
 
 
-showPreviewArtwork : ArtistLookup -> Html msg
+showPreviewArtwork : ArtistLookup -> NodeWithStyle Msg
 showPreviewArtwork artist =
     case artist.preview_artwork of
         Just preview_artwork ->
-            img [ alt "", src preview_artwork.image_url ] []
+            B.img "" preview_artwork.image_url []
 
         Nothing ->
-            div [] []
+            B.div [] []
 
 
-debugView : String -> Model -> Browser.Document Msg
+debugView : String -> Model -> NodeWithStyle Msg
 debugView query model =
-    { title = "Query Explorer"
-    , body =
-        [ div []
-            [ div []
-                [ p [] [ toggleDebugViewCheckbox model ]
-                , h1 [] [ Html.text "Generated Query" ]
-                , p [] [ toggleAliasesCheckbox ]
-                , pre []
+    B.div []
+        [ B.div []
+            [ B.p [] [ toggleDebugViewCheckbox model ]
+            , B.h1 [] [ B.text "Generated Query" ]
+            , B.p [] [ toggleAliasesCheckbox model ]
+            , ( pre []
                     [ (if model.hideAliases then
                         query
                             |> stripAliases
@@ -194,32 +189,32 @@ debugView query model =
                       )
                         |> Html.text
                     ]
-                ]
-            , div []
-                [ h1 [] [ Html.text "Response" ]
-                , log "SUBMODEL" model |> PrintAny.view
-                ]
+              , []
+              )
             ]
-        ]
-    }
-
-
-toggleAliasesCheckbox : Html Msg
-toggleAliasesCheckbox =
-    label []
-        [ input [ type_ "checkbox", onClick ToggleAliases ] []
-        , Html.text " Show Aliases "
-        , a [ href "https://github.com/dillonkearns/elm-graphql/blob/master/FAQ.md#how-do-field-aliases-work-in-dillonkearnselm-graphql" ]
-            [ Html.text "(?)"
+        , div []
+            [ B.h1 [] [ B.text "Response" ]
+            , ( log "SUBMODEL" model |> PrintAny.view, [] )
             ]
         ]
 
 
-toggleDebugViewCheckbox : Model -> Html Msg
+toggleAliasesCheckbox : Model -> NodeWithStyle Msg
+toggleAliasesCheckbox model =
+    B.div []
+        [ B.inputCheckbox [ onCheck ToggleAliases, checked model.hideAliases ]
+        , B.text " Show Aliases "
+        , B.a [ href "https://github.com/dillonkearns/elm-graphql/blob/master/FAQ.md#how-do-field-aliases-work-in-dillonkearnselm-graphql" ]
+            [ B.text "(?)"
+            ]
+        ]
+
+
+toggleDebugViewCheckbox : Model -> NodeWithStyle Msg
 toggleDebugViewCheckbox model =
-    label []
-        [ input [ type_ "checkbox", onClick ToggleDebugView, checked model.toggleDebugView ] []
-        , Html.text " Change view "
+    B.div []
+        [ B.inputCheckbox [ onCheck ToggleDebugView, checked model.toggleDebugView ]
+        , B.text " Change view "
         ]
 
 
