@@ -5,10 +5,36 @@ module Main exposing (..)
 -- import Html.Events exposing (onClick)
 
 import BodyBuilder as B exposing (..)
-import BodyBuilder.Attributes exposing (checked, href, label)
+import BodyBuilder.Attributes as A exposing (checked, href, label)
 import BodyBuilder.Events exposing (onCheck, onClick)
+import BodyBuilder.Style as Style
 import Browser
 import Debug exposing (log)
+import Elegant exposing (px)
+import Elegant.Block as Block
+import Elegant.Extra
+    exposing
+        ( alignCenter
+        , block
+        , blockProperties
+        , blockWithWidth
+        , bold
+        , border
+        , box
+        , cursorPointer
+        , displayBlock
+        , fontSize
+        , grow
+        , padding
+        , paddingAll
+        , paddingBottom
+        , paddingHorizontal
+        , paddingTop
+        , paddingVertical
+        , typoSize
+        , typography
+        )
+import Elegant.Grid as Grid exposing (Repeatable(..), autofill)
 import Galerie.Object
 import Galerie.Object.Artist as Artist
 import Galerie.Object.Artwork as Artwork
@@ -18,6 +44,7 @@ import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import Helpers.ViewHelpers exposing (..)
 import Html exposing (pre, text)
 import PrintAny
 import Regex
@@ -158,8 +185,51 @@ view query model =
     in
     B.div []
         [ B.p [] [ toggleDebugViewCheckbox model ]
-        , B.div [] (List.map showPreviewArtwork artists)
+        , verticalLayout []
+            [ pxRow 168
+                []
+                [ horizontalLayout []
+                    [ pxColumn 128 [] []
+                    , fillColumn [] []
+                    , autoColumn []
+                        [ horizontalCenteredLayout []
+                            [ pxColumn 156 [] [ B.text "ARTISTES" ]
+                            , pxColumn 156 [] [ B.text "EXPOSITIONS" ]
+                            , pxColumn 156 [] [ B.text "GALERIE" ]
+                            , pxColumn 156 [] [ B.text "CONTACT" ]
+                            ]
+                        ]
+                    ]
+                ]
+            , fillRow []
+                [ B.grid
+                    [ displayBlock
+                    , fillHeight
+                    , gridContainerProperties
+                        [ Grid.columns
+                            [ Grid.template
+                                (artistsToCustomGridItemRepeatable artists
+                                    |> List.map .repeatable
+                                )
+                            , Grid.align Grid.stretch
+                            ]
+                        ]
+                    ]
+                    (artistsToCustomGridItemRepeatable artists |> List.map (\gridItem -> B.gridItem gridItem.attrs gridItem.content))
+                ]
+            ]
         ]
+
+
+artistsToCustomGridItemRepeatable artists =
+    List.map
+        (\artist ->
+            { repeatable = Repeat autofill [ px 20, px 20, px 20 ]
+            , attrs = []
+            , content = [ showPreviewArtwork artist ]
+            }
+        )
+        artists
 
 
 showPreviewArtwork : ArtistLookup -> NodeWithStyle Msg
