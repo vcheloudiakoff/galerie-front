@@ -10,7 +10,7 @@ import BodyBuilder.Events exposing (onCheck, onClick)
 import BodyBuilder.Style as Style
 import Browser
 import Debug exposing (log)
-import Elegant exposing (px)
+import Elegant exposing (percent, px)
 import Elegant.Block as Block
 import Elegant.Extra
     exposing
@@ -208,38 +208,30 @@ view query model =
                     , gridContainerProperties
                         [ Grid.columns
                             [ Grid.template
-                                (artistsToCustomGridItemRepeatable artists
-                                    |> List.map .repeatable
-                                )
-                            , Grid.align Grid.stretch
+                                [ Repeat Grid.autofill [ px 150 ] ]
+                            , Grid.alignItems (Grid.alignWrapper Grid.center)
+                            ]
+                        , Grid.rows
+                            [ Grid.align Grid.center
                             ]
                         ]
                     ]
-                    (artistsToCustomGridItemRepeatable artists |> List.map (\gridItem -> B.gridItem gridItem.attrs gridItem.content))
+                    (List.map showPreviewArtwork (artists ++ artists ++ artists ++ artists ++ artists ++ artists))
                 ]
             ]
         ]
 
 
-artistsToCustomGridItemRepeatable artists =
-    List.map
-        (\artist ->
-            { repeatable = Repeat autofill [ px 20, px 20, px 20 ]
-            , attrs = []
-            , content = [ showPreviewArtwork artist ]
-            }
-        )
-        artists
-
-
-showPreviewArtwork : ArtistLookup -> NodeWithStyle Msg
+showPreviewArtwork : ArtistLookup -> GridItem Msg
 showPreviewArtwork artist =
-    case artist.preview_artwork of
-        Just preview_artwork ->
-            B.img "" preview_artwork.image_url []
+    B.gridItem []
+        [ case artist.preview_artwork of
+            Just preview_artwork ->
+                B.img "" preview_artwork.image_url [ A.style [ Style.block [ Block.width (percent 100) ] ] ]
 
-        Nothing ->
-            B.div [] []
+            Nothing ->
+                B.div [] []
+        ]
 
 
 debugView : String -> Model -> NodeWithStyle Msg
