@@ -6,12 +6,15 @@ module Main exposing (..)
 
 import BodyBuilder as B exposing (..)
 import BodyBuilder.Attributes as A exposing (checked, href, label)
-import BodyBuilder.Events exposing (onCheck, onClick)
+import BodyBuilder.Events exposing (onCheck, onClick, onMouseLeave, onMouseOver)
 import BodyBuilder.Style as Style
 import Browser
+import Color
 import Debug exposing (log)
 import Elegant exposing (percent, px)
 import Elegant.Block as Block
+import Elegant.Box as Box
+import Elegant.Cursor as Cursor
 import Elegant.Extra
     exposing
         ( alignCenter
@@ -35,6 +38,8 @@ import Elegant.Extra
         , typography
         )
 import Elegant.Grid as Grid exposing (Repeatable(..), autofill)
+import Elegant.Position as Position
+import Elegant.Transform as Transform
 import Galerie.Object
 import Galerie.Object.Artist as Artist
 import Galerie.Object.Artwork as Artwork
@@ -59,6 +64,8 @@ type Msg
     = ToggleAliases Bool
     | ToggleDebugView Bool
     | GotResponse (RemoteData (Graphql.Http.Error Response) Response)
+    | MouseArtistHover ArtistId
+    | MouseArtistLeave
 
 
 type alias Model =
@@ -66,6 +73,7 @@ type alias Model =
     , response : RemoteData (Graphql.Http.Error Response) Response
     , toggleDebugView : Bool
     , artists : List ArtistLookup
+    , maybeHoveredArtistId : Maybe ArtistId
     }
 
 
@@ -121,6 +129,12 @@ update msg model =
         ToggleDebugView bool ->
             ( { model | toggleDebugView = bool }, Cmd.none )
 
+        MouseArtistHover artistId ->
+            ( { model | maybeHoveredArtistId = Just artistId }, Cmd.none )
+
+        MouseArtistLeave ->
+            ( { model | maybeHoveredArtistId = Nothing }, Cmd.none )
+
 
 makeRequest : Cmd Msg
 makeRequest =
@@ -151,6 +165,7 @@ initModel =
     , response = RemoteData.Loading
     , toggleDebugView = False
     , artists = []
+    , maybeHoveredArtistId = Nothing
     }
 
 
@@ -208,30 +223,93 @@ view query model =
                     , gridContainerProperties
                         [ Grid.columns
                             [ Grid.template
-                                [ Repeat Grid.autofill [ px 150 ] ]
+                                [ Repeat Grid.autofill [ px 288 ] ]
                             , Grid.alignItems (Grid.alignWrapper Grid.center)
+                            , Grid.gap (px 76)
                             ]
                         , Grid.rows
                             [ Grid.align Grid.center
                             ]
                         ]
                     ]
-                    (List.map showPreviewArtwork (artists ++ artists ++ artists ++ artists ++ artists ++ artists))
+                    (List.map (showPreviewArtwork model.maybeHoveredArtistId) artists)
                 ]
             ]
         ]
 
 
-showPreviewArtwork : ArtistLookup -> GridItem Msg
-showPreviewArtwork artist =
+showPreviewArtwork : Maybe ArtistId -> ArtistLookup -> GridItem Msg
+showPreviewArtwork maybeHoveredArtistId artist =
+    let
+        hover =
+            case maybeHoveredArtistId of
+                Just hoveredArtistId ->
+                    hoveredArtistId == artist.id
+
+                Nothing ->
+                    False
+    in
     B.gridItem []
         [ case artist.preview_artwork of
             Just preview_artwork ->
-                B.img "" preview_artwork.image_url [ A.style [ Style.block [ Block.width (percent 100) ] ] ]
+                B.div
+                    ([ A.style
+                        [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ] ]
+                     ]
+                        ++ (if hover then
+                                [ onMouseLeave MouseArtistLeave ]
+
+                            else
+                                [ onMouseOver (MouseArtistHover artist.id) ]
+                           )
+                    )
+                    ([ B.img ""
+                        preview_artwork.image_url
+                        [ A.style
+                            ([ Style.block [ Block.width (percent 100) ]
+                             ]
+                                ++ pseudoClassArtistHoverBoxStyle hover
+                            )
+                        ]
+                     ]
+                        ++ (if hover then
+                                [ B.div
+                                    [ A.style
+                                        [ Style.box
+                                            [ Box.position
+                                                (Position.absolute
+                                                    [ Position.top (percent 50)
+                                                    , Position.left (percent 50)
+                                                    ]
+                                                )
+                                            , Box.transform
+                                                [ Transform.translateX (percent -50)
+                                                , Transform.translateY (percent -50)
+                                                ]
+                                            , Box.textColor <|
+                                                Color.rgb 0 0 0
+                                            ]
+                                        ]
+                                    ]
+                                    [ B.text artist.nickname ]
+                                ]
+
+                            else
+                                []
+                           )
+                    )
 
             Nothing ->
                 B.div [] []
         ]
+
+
+pseudoClassArtistHoverBoxStyle hover =
+    if hover then
+        [ Style.box [ Box.opacity 0.55 ] ]
+
+    else
+        []
 
 
 debugView : String -> Model -> NodeWithStyle Msg
@@ -288,3 +366,7 @@ stripAliases query =
                 |> Maybe.withDefault Regex.never
             )
             (\match -> match.submatches |> List.head |> Maybe.withDefault Nothing |> Maybe.withDefault "")
+
+
+type alias ArtistId =
+    String
