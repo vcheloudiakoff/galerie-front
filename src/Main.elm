@@ -7,6 +7,20 @@ module Main exposing (..)
 import BodyBuilder as B exposing (..)
 import BodyBuilder.Attributes as A exposing (checked, href, label)
 import BodyBuilder.Events exposing (onCheck, onClick, onMouseLeave, onMouseOver)
+import BodyBuilder.Router as Router
+    exposing
+        ( History
+        , Page
+        , StandardHistoryMsg(..)
+        , Transition
+        , handleStandardHistory
+        , historyView
+        , initHistoryAndData
+        , maybeTransitionSubscription
+        , pageWithDefaultTransition
+        , pageWithoutTransition
+        , push
+        )
 import BodyBuilder.Style as Style
 import Browser
 import Color
@@ -38,8 +52,10 @@ import Elegant.Extra
         , typography
         )
 import Elegant.Grid as Grid exposing (Repeatable(..), autofill)
+import Elegant.Padding
 import Elegant.Position as Position
 import Elegant.Transform as Transform
+import Elegant.Typography as Typography
 import Galerie.Object
 import Galerie.Object.Artist as Artist
 import Galerie.Object.Artwork as Artwork
@@ -57,23 +73,147 @@ import RemoteData exposing (RemoteData)
 
 
 
+---- PROGRAM ----
+
+
+main : Program Flags Model Msg
+main =
+    B.element
+        { init = init
+        , update = update
+        , subscriptions = subscriptions
+        , view = chooseView (Document.serializeQuery rootQuery)
+        }
+
+
+init : Flags -> ( { data : Data, history : MyHistory }, Cmd Msg )
+init _ =
+    ( initHistoryAndData ArtistsIndex initData StandardHistoryWrapper, makeRequest )
+
+
+initData : Data
+initData =
+    { hideAliases = False
+    , response = RemoteData.Loading
+    , toggleDebugView = False
+    , artists = []
+    , maybeHoveredArtistId = Nothing
+    }
+
+
+type alias Flags =
+    ()
+
+
+type alias ArtistId =
+    String
+
+
+type alias ExhibitionId =
+    String
+
+
+
+---- ROUTER ----
+
+
+type Route
+    = ArtistsIndex
+    | ArtistsShow ArtistId
+    | ExhibitionsIndex
+    | ExhibitionsShow ExhibitionId
+
+
+type HistoryMsg
+    = ArtistIndex
+    | ArtistShow ArtistId
+    | ExhibitionIndex
+    | ExhibitionShow ExhibitionId
+
+
+handleHistory : HistoryMsg -> MyHistory -> MyHistory
+handleHistory route history =
+    case route of
+        ArtistIndex ->
+            history |> push (Router.pageWithoutTransition ArtistsIndex)
+
+        ArtistShow id ->
+            history |> push (Router.pageWithoutTransition (ArtistsShow id))
+
+        ExhibitionIndex ->
+            history |> push (Router.pageWithoutTransition ExhibitionsIndex)
+
+        ExhibitionShow id ->
+            history |> push (Router.pageWithoutTransition (ExhibitionsShow id))
+
+
+view : String -> Model -> NodeWithStyle Msg
+view query ({ history, data } as model) =
+    B.div
+        [ A.style
+            [ Style.box
+                [ Box.fontFamilySansSerif
+                ]
+            ]
+        ]
+        [ historyView (pageView query data) history ]
+
+
+pageView : String -> Data -> Page Route Msg -> Maybe (Transition Route Msg) -> NodeWithStyle Msg
+pageView query data { route } transition =
+    case route of
+        ArtistsIndex ->
+            artistsIndex query data route
+
+        ArtistsShow id ->
+            artistsShow id data route
+
+        ExhibitionsIndex ->
+            exhibitionsIndex query data route
+
+        ExhibitionsShow id ->
+            exhibitionsShow id data route
+
+
+
+---- SUBSCRIPTION ----
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    maybeTransitionSubscription model.history
+
+
+
 ---- MODEL ----
 
 
 type Msg
-    = ToggleAliases Bool
+    = HistoryMsgWrapper HistoryMsg
+    | StandardHistoryWrapper StandardHistoryMsg
     | ToggleDebugView Bool
     | GotResponse (RemoteData (Graphql.Http.Error Response) Response)
     | MouseArtistHover ArtistId
     | MouseArtistLeave
+    | ToggleAliases Bool
 
 
-type alias Model =
-    { hideAliases : Bool
-    , response : RemoteData (Graphql.Http.Error Response) Response
+type alias Data =
+    { response : RemoteData (Graphql.Http.Error Response) Response
+    , hideAliases : Bool
     , toggleDebugView : Bool
     , artists : List ArtistLookup
     , maybeHoveredArtistId : Maybe ArtistId
+    }
+
+
+type alias MyHistory =
+    History Route Msg
+
+
+type alias Model =
+    { history : MyHistory
+    , data : Data
     }
 
 
@@ -114,26 +254,36 @@ preview_artwork_selector =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        data =
+            model.data
+    in
     case msg of
         GotResponse response ->
             case response of
-                RemoteData.Success data ->
-                    ( { model | response = response, artists = data.artists }, Cmd.none )
+                RemoteData.Success receiveData ->
+                    ( { model | data = { data | response = response, artists = receiveData.artists } }, Cmd.none )
 
                 _ ->
-                    ( { model | response = response }, Cmd.none )
+                    ( { model | data = { data | response = response } }, Cmd.none )
 
         ToggleAliases bool ->
-            ( { model | hideAliases = bool }, Cmd.none )
+            ( { model | data = { data | hideAliases = bool } }, Cmd.none )
 
         ToggleDebugView bool ->
-            ( { model | toggleDebugView = bool }, Cmd.none )
+            ( { model | data = { data | toggleDebugView = bool } }, Cmd.none )
 
         MouseArtistHover artistId ->
-            ( { model | maybeHoveredArtistId = Just artistId }, Cmd.none )
+            ( { model | data = { data | maybeHoveredArtistId = Just artistId } }, Cmd.none )
 
         MouseArtistLeave ->
-            ( { model | maybeHoveredArtistId = Nothing }, Cmd.none )
+            ( { model | data = { data | maybeHoveredArtistId = Nothing } }, Cmd.none )
+
+        HistoryMsgWrapper historyMsg ->
+            ( { model | history = handleHistory historyMsg model.history }, Cmd.none )
+
+        StandardHistoryWrapper historyMsg ->
+            model |> handleStandardHistory historyMsg
 
 
 makeRequest : Cmd Msg
@@ -150,89 +300,191 @@ rootQuery =
 
 
 
----- VIEW ----
----- PROGRAM ----
+---- VIEWS ----
+--Choose View/debug
 
 
-init : Flags -> ( Model, Cmd Msg )
-init _ =
-    ( initModel, makeRequest )
+debugView : String -> Data -> NodeWithStyle Msg
+debugView query data =
+    B.div []
+        [ B.div []
+            [ B.p [] [ toggleDebugViewCheckbox data ]
+            , B.h1 [] [ B.text "Generated Query" ]
+            , B.p [] [ toggleAliasesCheckbox data ]
+            , ( pre []
+                    [ (if data.hideAliases then
+                        query
+                            |> stripAliases
+
+                       else
+                        query
+                      )
+                        |> Html.text
+                    ]
+              , []
+              )
+            ]
+        , div []
+            [ B.h1 [] [ B.text "Response" ]
+            , ( log "SUBMODEL" data |> PrintAny.view, [] )
+            ]
+        ]
 
 
-initModel : Model
-initModel =
-    { hideAliases = False
-    , response = RemoteData.Loading
-    , toggleDebugView = False
-    , artists = []
-    , maybeHoveredArtistId = Nothing
-    }
+toggleAliasesCheckbox : Data -> NodeWithStyle Msg
+toggleAliasesCheckbox data =
+    B.div []
+        [ B.inputCheckbox [ onCheck ToggleAliases, checked data.hideAliases ]
+        , B.text " Show Aliases "
+        , B.a [ href "https://github.com/dillonkearns/elm-graphql/blob/master/FAQ.md#how-do-field-aliases-work-in-dillonkearnselm-graphql" ]
+            [ B.text "(?)"
+            ]
+        ]
 
 
-type alias Flags =
-    ()
+toggleDebugViewCheckbox : Data -> NodeWithStyle Msg
+toggleDebugViewCheckbox data =
+    B.div []
+        [ B.inputCheckbox [ onCheck ToggleDebugView, checked data.toggleDebugView ]
+        , B.text " Change view "
+        ]
 
 
-main : Program Flags Model Msg
-main =
-    B.element
-        { init = init
-        , update = update
-        , subscriptions = \_ -> Sub.none
-        , view = chooseView (Document.serializeQuery rootQuery)
-        }
+stripAliases : String -> String
+stripAliases query =
+    query
+        |> Regex.replace
+            (Regex.fromStringWith { multiline = True, caseInsensitive = True } "^(\\s*)\\w+: "
+                |> Maybe.withDefault Regex.never
+            )
+            (\match -> match.submatches |> List.head |> Maybe.withDefault Nothing |> Maybe.withDefault "")
 
 
 chooseView : String -> Model -> NodeWithStyle Msg
 chooseView query model =
-    if model.toggleDebugView then
-        debugView query model
+    if model.data.toggleDebugView then
+        debugView query model.data
 
     else
         view query model
 
 
-view : String -> Model -> NodeWithStyle Msg
-view query model =
-    let
-        artists =
-            model.artists
-    in
-    B.div []
-        [ B.p [] [ toggleDebugViewCheckbox model ]
-        , verticalLayout []
-            [ pxRow 168
-                []
-                [ horizontalLayout []
-                    [ pxColumn 128 [] []
-                    , fillColumn [] []
-                    , autoColumn []
-                        [ horizontalCenteredLayout []
-                            [ pxColumn 156 [] [ B.text "ARTISTES" ]
-                            , pxColumn 156 [] [ B.text "EXPOSITIONS" ]
-                            , pxColumn 156 [] [ B.text "GALERIE" ]
-                            , pxColumn 156 [] [ B.text "CONTACT" ]
-                            ]
-                        ]
+
+---- ARTISTS ----
+-- HEADER --
+
+
+headerViewRow currentRoute =
+    pxRow 168
+        []
+        [ horizontalLayout []
+            [ pxColumn 128 [] [ B.img "galerie cheloudiakoff" "public/logo.svg" [] ]
+            , fillColumn [] []
+            , autoColumn []
+                [ horizontalCenteredLayout []
+                    [ buttonNav currentRoute ArtistIndex [ B.text "ARTISTES" ]
+                    , buttonNav currentRoute ExhibitionIndex [ B.text "EXPOSITIONS" ]
+
+                    -- , pxColumn 156 [ A.style [ Style.box ([ Box.cursorPointer ] ++ addBoldIfRouteMatches route ArtistsIndex) ], onClick <| HistoryMsgWrapper s ] [ B.text "EXPOSITIONS" ]
+                    -- , pxColumn 156 [ A.style [ Style.box ([ Box.cursorPointer ] ++ addBoldIfRouteMatches route ArtistsIndex) ], onClick <| HistoryMsgWrapper s ] [ B.text "GALERIE" ]
+                    -- , pxColumn 156 [ A.style [ Style.box ([ Box.cursorPointer ] ++ addBoldIfRouteMatches route ArtistsIndex) ], onClick <| HistoryMsgWrapper s ] [ B.text "CONTACT" ]
                     ]
                 ]
+            ]
+        ]
+
+
+buttonNav : Route -> HistoryMsg -> List (NodeWithStyle Msg) -> CustomGridItem Msg
+buttonNav currentRoute historyMsg =
+    pxColumn 156
+        [ A.style [ Style.box ([ Box.cursorPointer ] ++ addBoldIfRouteMatches currentRoute historyMsg) ]
+        , onClick <| HistoryMsgWrapper historyMsg
+        ]
+
+
+addBoldIfRouteMatches currentRoute historyMsg =
+    case historyMsg of
+        ArtistIndex ->
+            case currentRoute of
+                ArtistsIndex ->
+                    [ Box.typography [ Typography.bold ] ]
+
+                ArtistsShow _ ->
+                    [ Box.typography [ Typography.bold ] ]
+
+                _ ->
+                    []
+
+        ArtistShow _ ->
+            case currentRoute of
+                ArtistsIndex ->
+                    [ Box.typography [ Typography.bold ] ]
+
+                ArtistsShow _ ->
+                    [ Box.typography [ Typography.bold ] ]
+
+                _ ->
+                    []
+
+        ExhibitionIndex ->
+            case currentRoute of
+                ExhibitionsIndex ->
+                    [ Box.typography [ Typography.bold ] ]
+
+                ExhibitionsShow _ ->
+                    [ Box.typography [ Typography.bold ] ]
+
+                _ ->
+                    []
+
+        ExhibitionShow _ ->
+            case currentRoute of
+                ExhibitionsIndex ->
+                    [ Box.typography [ Typography.bold ] ]
+
+                ExhibitionsShow _ ->
+                    [ Box.typography [ Typography.bold ] ]
+
+                _ ->
+                    []
+
+
+
+-- INDEX --
+
+
+artistsIndex : String -> Data -> Route -> NodeWithStyle Msg
+artistsIndex query data route =
+    let
+        artists =
+            data.artists
+    in
+    B.div []
+        [ B.p [] [ toggleDebugViewCheckbox data ]
+        , verticalLayout []
+            [ headerViewRow route
             , fillRow []
-                [ B.grid
-                    [ displayBlock
-                    , fillHeight
-                    , gridContainerProperties
-                        [ Grid.columns
-                            [ Grid.template
-                                [ Repeat Grid.autofill [ px 288 ] ]
-                            , Grid.alignItems (Grid.alignWrapper Grid.center)
-                            , Grid.gap (px 76)
-                            ]
-                        , Grid.rows
-                            [ Grid.align Grid.center
+                [ B.div [ A.style [ Style.box [ Box.paddingTop (px 96), Box.paddingHorizontal (px 100) ] ] ]
+                    [ B.grid
+                        [ displayBlock
+                        , fillHeight
+                        , gridContainerProperties
+                            [ Grid.columns
+                                [ Grid.template
+                                    [ Repeat Grid.autofill [ px 288 ] ]
+                                , Grid.alignItems (Grid.alignWrapper Grid.center)
+                                , Grid.gap (px 76)
+                                ]
+                            , Grid.rows
+                                [ Grid.template
+                                    [ Repeat Grid.autofill [ px 288 ] ]
+                                , Grid.align Grid.center
+                                , Grid.gap (px 76)
+                                ]
                             ]
                         ]
+                        (List.map (showPreviewArtwork data.maybeHoveredArtistId) (artists ++ artists ++ artists))
                     ]
-                    (List.map (showPreviewArtwork model.maybeHoveredArtistId) artists)
                 ]
             ]
         ]
@@ -255,6 +507,7 @@ showPreviewArtwork maybeHoveredArtistId artist =
                 B.div
                     ([ A.style
                         [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ] ]
+                     , onClick (HistoryMsgWrapper <| ArtistShow artist.id)
                      ]
                         ++ (if hover then
                                 [ onMouseLeave MouseArtistLeave ]
@@ -312,61 +565,20 @@ pseudoClassArtistHoverBoxStyle hover =
         []
 
 
-debugView : String -> Model -> NodeWithStyle Msg
-debugView query model =
-    B.div []
-        [ B.div []
-            [ B.p [] [ toggleDebugViewCheckbox model ]
-            , B.h1 [] [ B.text "Generated Query" ]
-            , B.p [] [ toggleAliasesCheckbox model ]
-            , ( pre []
-                    [ (if model.hideAliases then
-                        query
-                            |> stripAliases
 
-                       else
-                        query
-                      )
-                        |> Html.text
-                    ]
-              , []
-              )
-            ]
-        , div []
-            [ B.h1 [] [ B.text "Response" ]
-            , ( log "SUBMODEL" model |> PrintAny.view, [] )
-            ]
-        ]
+-- SHOW
 
 
-toggleAliasesCheckbox : Model -> NodeWithStyle Msg
-toggleAliasesCheckbox model =
-    B.div []
-        [ B.inputCheckbox [ onCheck ToggleAliases, checked model.hideAliases ]
-        , B.text " Show Aliases "
-        , B.a [ href "https://github.com/dillonkearns/elm-graphql/blob/master/FAQ.md#how-do-field-aliases-work-in-dillonkearnselm-graphql" ]
-            [ B.text "(?)"
-            ]
-        ]
+artistsShow artistId data route =
+    verticalLayout []
+        [ headerViewRow route ]
 
 
-toggleDebugViewCheckbox : Model -> NodeWithStyle Msg
-toggleDebugViewCheckbox model =
-    B.div []
-        [ B.inputCheckbox [ onCheck ToggleDebugView, checked model.toggleDebugView ]
-        , B.text " Change view "
-        ]
+exhibitionsIndex query data route =
+    verticalLayout []
+        [ headerViewRow route ]
 
 
-stripAliases : String -> String
-stripAliases query =
-    query
-        |> Regex.replace
-            (Regex.fromStringWith { multiline = True, caseInsensitive = True } "^(\\s*)\\w+: "
-                |> Maybe.withDefault Regex.never
-            )
-            (\match -> match.submatches |> List.head |> Maybe.withDefault Nothing |> Maybe.withDefault "")
-
-
-type alias ArtistId =
-    String
+exhibitionsShow exhibitionId data route =
+    verticalLayout []
+        [ headerViewRow route ]
