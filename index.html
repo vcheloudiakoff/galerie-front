@@ -9720,7 +9720,9 @@ var $author$project$Helpers$ViewHelpers$gridContainerProperties = function (a) {
 			]));
 };
 var $author$project$Main$ArtistIndex = {$: 'ArtistIndex'};
+var $author$project$Main$ContactMsg = {$: 'ContactMsg'};
 var $author$project$Main$ExhibitionIndex = {$: 'ExhibitionIndex'};
+var $author$project$Main$GalerieMsg = {$: 'GalerieMsg'};
 var $elm_athlete$athlete$Elegant$Grid$Auto = {$: 'Auto'};
 var $elm_athlete$athlete$Elegant$Grid$auto = $elm_athlete$athlete$Elegant$Grid$Auto;
 var $author$project$Helpers$ViewHelpers$row = $author$project$Helpers$ViewHelpers$column;
@@ -9797,7 +9799,7 @@ var $author$project$Main$addBoldIfRouteMatches = F2(
 					default:
 						return _List_Nil;
 				}
-			default:
+			case 'ExhibitionShow':
 				switch (currentRoute.$) {
 					case 'ExhibitionsIndex':
 						return _List_fromArray(
@@ -9815,6 +9817,28 @@ var $author$project$Main$addBoldIfRouteMatches = F2(
 							]);
 					default:
 						return _List_Nil;
+				}
+			case 'GalerieMsg':
+				if (currentRoute.$ === 'GalerieIndex') {
+					return _List_fromArray(
+						[
+							$elm_athlete$athlete$Elegant$Box$typography(
+							_List_fromArray(
+								[$elm_athlete$athlete$Elegant$Typography$bold]))
+						]);
+				} else {
+					return _List_Nil;
+				}
+			default:
+				if (currentRoute.$ === 'ContactIndex') {
+					return _List_fromArray(
+						[
+							$elm_athlete$athlete$Elegant$Box$typography(
+							_List_fromArray(
+								[$elm_athlete$athlete$Elegant$Typography$bold]))
+						]);
+				} else {
+					return _List_Nil;
 				}
 		}
 	});
@@ -10121,6 +10145,22 @@ var $author$project$Main$headerViewRow = function (currentRoute) {
 										_List_fromArray(
 											[
 												$elm_athlete$athlete$BodyBuilder$text('EXPOSITIONS')
+											])),
+										A3(
+										$author$project$Main$buttonNav,
+										currentRoute,
+										$author$project$Main$GalerieMsg,
+										_List_fromArray(
+											[
+												$elm_athlete$athlete$BodyBuilder$text('GALERIE')
+											])),
+										A3(
+										$author$project$Main$buttonNav,
+										currentRoute,
+										$author$project$Main$ContactMsg,
+										_List_fromArray(
+											[
+												$elm_athlete$athlete$BodyBuilder$text('CONTACTE')
 											]))
 									]))
 							]))
@@ -10721,6 +10761,16 @@ var $author$project$Main$artistsShow = F3(
 					$author$project$Main$headerViewRow(route)
 				]));
 	});
+var $author$project$Main$contactIndex = F3(
+	function (query, data, route) {
+		return A2(
+			$author$project$Helpers$ViewHelpers$verticalLayout,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$author$project$Main$headerViewRow(route)
+				]));
+	});
 var $author$project$Main$exhibitionsIndex = F3(
 	function (query, data, route) {
 		return A2(
@@ -10741,6 +10791,16 @@ var $author$project$Main$exhibitionsShow = F3(
 					$author$project$Main$headerViewRow(route)
 				]));
 	});
+var $author$project$Main$galerieIndex = F3(
+	function (query, data, route) {
+		return A2(
+			$author$project$Helpers$ViewHelpers$verticalLayout,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$author$project$Main$headerViewRow(route)
+				]));
+	});
 var $author$project$Main$pageView = F4(
 	function (query, data, _v0, transition) {
 		var route = _v0.route;
@@ -10752,9 +10812,13 @@ var $author$project$Main$pageView = F4(
 				return A3($author$project$Main$artistsShow, id, data, route);
 			case 'ExhibitionsIndex':
 				return A3($author$project$Main$exhibitionsIndex, query, data, route);
-			default:
+			case 'ExhibitionsShow':
 				var id = route.a;
 				return A3($author$project$Main$exhibitionsShow, id, data, route);
+			case 'GalerieIndex':
+				return A3($author$project$Main$galerieIndex, query, data, route);
+			default:
+				return A3($author$project$Main$contactIndex, query, data, route);
 		}
 	});
 var $author$project$Main$view = F2(
@@ -12886,10 +12950,12 @@ var $author$project$Main$subscriptions = function (model) {
 var $author$project$Main$ArtistsShow = function (a) {
 	return {$: 'ArtistsShow', a: a};
 };
+var $author$project$Main$ContactIndex = {$: 'ContactIndex'};
 var $author$project$Main$ExhibitionsIndex = {$: 'ExhibitionsIndex'};
 var $author$project$Main$ExhibitionsShow = function (a) {
 	return {$: 'ExhibitionsShow', a: a};
 };
+var $author$project$Main$GalerieIndex = {$: 'GalerieIndex'};
 var $elm_athlete$athlete$BodyBuilder$Router$isRunning = function (transition_) {
 	if (transition_.$ === 'Nothing') {
 		return false;
@@ -12933,12 +12999,22 @@ var $author$project$Main$handleHistory = F2(
 					$elm_athlete$athlete$BodyBuilder$Router$push,
 					$elm_athlete$athlete$BodyBuilder$Router$pageWithoutTransition($author$project$Main$ExhibitionsIndex),
 					history);
-			default:
+			case 'ExhibitionShow':
 				var id = route.a;
 				return A2(
 					$elm_athlete$athlete$BodyBuilder$Router$push,
 					$elm_athlete$athlete$BodyBuilder$Router$pageWithoutTransition(
 						$author$project$Main$ExhibitionsShow(id)),
+					history);
+			case 'GalerieMsg':
+				return A2(
+					$elm_athlete$athlete$BodyBuilder$Router$push,
+					$elm_athlete$athlete$BodyBuilder$Router$pageWithoutTransition($author$project$Main$GalerieIndex),
+					history);
+			default:
+				return A2(
+					$elm_athlete$athlete$BodyBuilder$Router$push,
+					$elm_athlete$athlete$BodyBuilder$Router$pageWithoutTransition($author$project$Main$ContactIndex),
 					history);
 		}
 	});
