@@ -416,6 +416,11 @@ buttonNav currentRoute historyMsg =
         ]
 
 
+backButton : NodeWithStyle Msg
+backButton =
+    B.div [ onClick <| StandardHistoryWrapper Back ] [ B.text "< Retour" ]
+
+
 addBoldIfRouteMatches currentRoute historyMsg =
     case historyMsg of
         ArtistIndex ->
@@ -520,6 +525,16 @@ artistsIndex query data route =
         ]
 
 
+artistsShow artistId data route =
+    verticalLayout []
+        [ headerViewRow route
+        , fillRow []
+            [ B.div [ A.style [ Style.box [ Box.paddingTop (px 96), Box.paddingHorizontal (px 100) ] ] ]
+                [ backButton ]
+            ]
+        ]
+
+
 showPreviewArtwork : Maybe ArtistId -> ArtistLookup -> GridItem Msg
 showPreviewArtwork maybeHoveredArtistId artist =
     let
@@ -597,11 +612,6 @@ pseudoClassArtistHoverBoxStyle hover =
 
 
 -- SHOW
-
-
-artistsShow artistId data route =
-    verticalLayout []
-        [ headerViewRow route ]
 
 
 exhibitionsIndex query data route =
