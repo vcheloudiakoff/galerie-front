@@ -5,6 +5,7 @@
     "api": "elm-graphql http://localhost:3000/graphql --base Galerie"
   },
   "devDependencies": {
+    "@dillonkearns/elm-graphql": "^3.6.2",
     "elm-live": "^4.0.0-rc.1"
   }
 }
