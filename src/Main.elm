@@ -401,11 +401,7 @@ headerViewRow currentRoute =
                     [ buttonNav currentRoute ArtistIndex [ B.text "ARTISTES" ]
                     , buttonNav currentRoute ExhibitionIndex [ B.text "EXPOSITIONS" ]
                     , buttonNav currentRoute GalerieMsg [ B.text "GALERIE" ]
-                    , buttonNav currentRoute ContactMsg [ B.text "CONTACTE" ]
-
-                    -- , pxColumn 156 [ A.style [ Style.box ([ Box.cursorPointer ] ++ addBoldIfRouteMatches route ArtistsIndex) ], onClick <| HistoryMsgWrapper s ] [ B.text "EXPOSITIONS" ]
-                    -- , pxColumn 156 [ A.style [ Style.box ([ Box.cursorPointer ] ++ addBoldIfRouteMatches route ArtistsIndex) ], onClick <| HistoryMsgWrapper s ] [ B.text "GALERIE" ]
-                    -- , pxColumn 156 [ A.style [ Style.box ([ Box.cursorPointer ] ++ addBoldIfRouteMatches route ArtistsIndex) ], onClick <| HistoryMsgWrapper s ] [ B.text "CONTACT" ]
+                    , buttonNav currentRoute ContactMsg [ B.text "CONTACT" ]
                     ]
                 ]
             ]
