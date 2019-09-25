@@ -122,6 +122,8 @@ type Route
     | ArtistsShow ArtistId
     | ExhibitionsIndex
     | ExhibitionsShow ExhibitionId
+    | GalerieIndex
+    | ContactIndex
 
 
 type HistoryMsg
@@ -129,6 +131,8 @@ type HistoryMsg
     | ArtistShow ArtistId
     | ExhibitionIndex
     | ExhibitionShow ExhibitionId
+    | GalerieMsg
+    | ContactMsg
 
 
 handleHistory : HistoryMsg -> MyHistory -> MyHistory
@@ -145,6 +149,12 @@ handleHistory route history =
 
         ExhibitionShow id ->
             history |> push (Router.pageWithoutTransition (ExhibitionsShow id))
+
+        GalerieMsg ->
+            history |> push (Router.pageWithoutTransition GalerieIndex)
+
+        ContactMsg ->
+            history |> push (Router.pageWithoutTransition ContactIndex)
 
 
 view : String -> Model -> NodeWithStyle Msg
@@ -173,6 +183,12 @@ pageView query data { route } transition =
 
         ExhibitionsShow id ->
             exhibitionsShow id data route
+
+        GalerieIndex ->
+            galerieIndex query data route
+
+        ContactIndex ->
+            contactIndex query data route
 
 
 
@@ -384,10 +400,8 @@ headerViewRow currentRoute =
                 [ horizontalCenteredLayout []
                     [ buttonNav currentRoute ArtistIndex [ B.text "ARTISTES" ]
                     , buttonNav currentRoute ExhibitionIndex [ B.text "EXPOSITIONS" ]
-
-                    -- , pxColumn 156 [ A.style [ Style.box ([ Box.cursorPointer ] ++ addBoldIfRouteMatches route ArtistsIndex) ], onClick <| HistoryMsgWrapper s ] [ B.text "EXPOSITIONS" ]
-                    -- , pxColumn 156 [ A.style [ Style.box ([ Box.cursorPointer ] ++ addBoldIfRouteMatches route ArtistsIndex) ], onClick <| HistoryMsgWrapper s ] [ B.text "GALERIE" ]
-                    -- , pxColumn 156 [ A.style [ Style.box ([ Box.cursorPointer ] ++ addBoldIfRouteMatches route ArtistsIndex) ], onClick <| HistoryMsgWrapper s ] [ B.text "CONTACT" ]
+                    , buttonNav currentRoute GalerieMsg [ B.text "GALERIE" ]
+                    , buttonNav currentRoute ContactMsg [ B.text "CONTACT" ]
                     ]
                 ]
             ]
@@ -443,6 +457,22 @@ addBoldIfRouteMatches currentRoute historyMsg =
                     [ Box.typography [ Typography.bold ] ]
 
                 ExhibitionsShow _ ->
+                    [ Box.typography [ Typography.bold ] ]
+
+                _ ->
+                    []
+
+        GalerieMsg ->
+            case currentRoute of
+                GalerieIndex ->
+                    [ Box.typography [ Typography.bold ] ]
+
+                _ ->
+                    []
+
+        ContactMsg ->
+            case currentRoute of
+                ContactIndex ->
                     [ Box.typography [ Typography.bold ] ]
 
                 _ ->
@@ -580,5 +610,15 @@ exhibitionsIndex query data route =
 
 
 exhibitionsShow exhibitionId data route =
+    verticalLayout []
+        [ headerViewRow route ]
+
+
+galerieIndex query data route =
+    verticalLayout []
+        [ headerViewRow route ]
+
+
+contactIndex query data route =
     verticalLayout []
         [ headerViewRow route ]
