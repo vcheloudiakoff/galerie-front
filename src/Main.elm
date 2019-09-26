@@ -25,7 +25,7 @@ import BodyBuilder.Style as Style
 import Browser
 import Color
 import Debug exposing (log)
-import Elegant exposing (percent, px)
+import Elegant exposing (percent, px, vw)
 import Elegant.Block as Block
 import Elegant.Box as Box
 import Elegant.Cursor as Cursor
@@ -418,7 +418,11 @@ buttonNav currentRoute historyMsg =
 
 backButton : NodeWithStyle Msg
 backButton =
-    B.div [ onClick <| StandardHistoryWrapper Back ] [ B.text "< Retour" ]
+    B.div
+        [ A.style [ Style.box [ Box.cursorPointer ] ]
+        , onClick <| StandardHistoryWrapper Back
+        ]
+        [ B.text "< Retour" ]
 
 
 addBoldIfRouteMatches currentRoute historyMsg =
@@ -525,14 +529,35 @@ artistsIndex query data route =
         ]
 
 
+artistsShow : ArtistId -> Data -> Route -> NodeWithStyle Msg
 artistsShow artistId data route =
     verticalLayout []
         [ headerViewRow route
         , fillRow []
             [ B.div [ A.style [ Style.box [ Box.paddingTop (px 96), Box.paddingHorizontal (px 100) ] ] ]
-                [ backButton ]
+                [ backButton
+                , horizontalLayout
+                    []
+                    [ autoColumn []
+                        [ verticalLayout []
+                            [ autoRow []
+                                []
+                            ]
+                        ]
+                    , autoColumn []
+                        [ verticalLayout []
+                            [ autoRow []
+                                []
+                            ]
+                        ]
+                    ]
+                ]
             ]
         ]
+
+
+artistDescription =
+    B.div [] []
 
 
 showPreviewArtwork : Maybe ArtistId -> ArtistLookup -> GridItem Msg
@@ -550,51 +575,50 @@ showPreviewArtwork maybeHoveredArtistId artist =
         [ case artist.preview_artwork of
             Just preview_artwork ->
                 B.div
-                    ([ A.style
-                        [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ] ]
-                     , onClick (HistoryMsgWrapper <| ArtistShow artist.id)
-                     ]
-                        ++ (if hover then
-                                [ onMouseLeave MouseArtistLeave ]
+                    ((if hover then
+                        onMouseLeave MouseArtistLeave
 
-                            else
-                                [ onMouseOver (MouseArtistHover artist.id) ]
-                           )
+                      else
+                        onMouseOver (MouseArtistHover artist.id)
+                     )
+                        :: [ A.style
+                                [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ] ]
+                           , onClick (HistoryMsgWrapper <| ArtistShow artist.id)
+                           ]
                     )
-                    ([ B.img ""
-                        preview_artwork.image_url
-                        [ A.style
-                            ([ Style.block [ Block.width (percent 100) ]
-                             ]
-                                ++ pseudoClassArtistHoverBoxStyle hover
-                            )
-                        ]
-                     ]
-                        ++ (if hover then
-                                [ B.div
-                                    [ A.style
-                                        [ Style.box
-                                            [ Box.position
-                                                (Position.absolute
-                                                    [ Position.top (percent 50)
-                                                    , Position.left (percent 50)
-                                                    ]
-                                                )
-                                            , Box.transform
-                                                [ Transform.translateX (percent -50)
-                                                , Transform.translateY (percent -50)
-                                                ]
-                                            , Box.textColor <|
-                                                Color.rgb 0 0 0
+                    ((if hover then
+                        B.div
+                            [ A.style
+                                [ Style.box
+                                    [ Box.position
+                                        (Position.absolute
+                                            [ Position.top (percent 50)
+                                            , Position.left (percent 50)
                                             ]
+                                        )
+                                    , Box.transform
+                                        [ Transform.translateX (percent -50)
+                                        , Transform.translateY (percent -50)
                                         ]
+                                    , Box.textColor <|
+                                        Color.rgb 0 0 0
                                     ]
-                                    [ B.text artist.nickname ]
                                 ]
+                            ]
+                            [ B.text artist.nickname ]
 
-                            else
-                                []
-                           )
+                      else
+                        B.div [] []
+                     )
+                        :: [ B.img ""
+                                preview_artwork.image_url
+                                [ A.style
+                                    ([ Style.block [ Block.width (percent 100) ]
+                                     ]
+                                        ++ pseudoClassArtistHoverBoxStyle hover
+                                    )
+                                ]
+                           ]
                     )
 
             Nothing ->
