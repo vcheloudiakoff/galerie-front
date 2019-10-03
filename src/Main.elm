@@ -26,7 +26,7 @@ import BodyBuilder.Style as Style
 import Browser
 import Color
 import Debug exposing (log)
-import Elegant exposing (percent, px)
+import Elegant exposing (percent, px, vw)
 import Elegant.Block as Block
 import Elegant.Box as Box
 import Elegant.Cursor as Cursor
@@ -287,11 +287,11 @@ artistSelector =
     SelectionSet.map3 ArtistLookup
         Artist.nickname
         Artist.id
-        (Artist.preview_artwork preview_artwork_selector)
+        (Artist.preview_artwork previewArtworkSelector)
 
 
-preview_artwork_selector : SelectionSet ArtworkLookup Galerie.Object.Artwork
-preview_artwork_selector =
+previewArtworkSelector : SelectionSet ArtworkLookup Galerie.Object.Artwork
+previewArtworkSelector =
     SelectionSet.map ArtworkLookup
         Artwork.image_url
 
@@ -482,7 +482,11 @@ buttonNav currentRoute historyMsg =
 
 backButton : NodeWithStyle Msg
 backButton =
-    B.div [ onClick <| StandardHistoryWrapper Back ] [ B.text "< Retour" ]
+    B.div
+        [ A.style [ Style.box [ Box.cursorPointer ] ]
+        , onClick <| StandardHistoryWrapper Back
+        ]
+        [ B.text "< Retour" ]
 
 
 addArtistButton : NodeWithStyle Msg
@@ -598,14 +602,35 @@ artistsIndex query data route =
         ]
 
 
+artistsShow : ArtistId -> Data -> Route -> NodeWithStyle Msg
 artistsShow artistId data route =
     verticalLayout []
         [ headerViewRow route
         , fillRow []
             [ B.div [ A.style [ Style.box [ Box.paddingTop (px 96), Box.paddingHorizontal (px 100) ] ] ]
-                [ backButton ]
+                [ backButton
+                , horizontalLayout
+                    []
+                    [ autoColumn []
+                        [ verticalLayout []
+                            [ autoRow []
+                                []
+                            ]
+                        ]
+                    , autoColumn []
+                        [ verticalLayout []
+                            [ autoRow []
+                                []
+                            ]
+                        ]
+                    ]
+                ]
             ]
         ]
+
+
+artistDescription =
+    B.div [] []
 
 
 showPreviewArtwork : Maybe ArtistId -> ArtistLookup -> GridItem Msg
@@ -623,51 +648,50 @@ showPreviewArtwork maybeHoveredArtistId artist =
         [ case artist.previewArtwork of
             Just previewArtwork ->
                 B.div
-                    ([ A.style
-                        [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ] ]
-                     , onClick (HistoryMsgWrapper <| GoToArtistShow artist.id)
-                     ]
-                        ++ (if hover then
-                                [ onMouseLeave MouseArtistLeave ]
+                    ((if hover then
+                        onMouseLeave MouseArtistLeave
 
-                            else
-                                [ onMouseOver (MouseArtistHover artist.id) ]
-                           )
+                      else
+                        onMouseOver (MouseArtistHover artist.id)
+                     )
+                        :: [ A.style
+                                [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ] ]
+                           , onClick (HistoryMsgWrapper <| GoToArtistShow artist.id)
+                           ]
                     )
-                    ([ B.img ""
-                        previewArtwork.image_url
-                        [ A.style
-                            ([ Style.block [ Block.width (percent 100) ]
-                             ]
-                                ++ pseudoClassArtistHoverBoxStyle hover
-                            )
-                        ]
-                     ]
-                        ++ (if hover then
-                                [ B.div
-                                    [ A.style
-                                        [ Style.box
-                                            [ Box.position
-                                                (Position.absolute
-                                                    [ Position.top (percent 50)
-                                                    , Position.left (percent 50)
-                                                    ]
-                                                )
-                                            , Box.transform
-                                                [ Transform.translateX (percent -50)
-                                                , Transform.translateY (percent -50)
-                                                ]
-                                            , Box.textColor <|
-                                                Color.rgb 0 0 0
+                    ((if hover then
+                        B.div
+                            [ A.style
+                                [ Style.box
+                                    [ Box.position
+                                        (Position.absolute
+                                            [ Position.top (percent 50)
+                                            , Position.left (percent 50)
                                             ]
+                                        )
+                                    , Box.transform
+                                        [ Transform.translateX (percent -50)
+                                        , Transform.translateY (percent -50)
                                         ]
+                                    , Box.textColor <|
+                                        Color.rgb 0 0 0
                                     ]
-                                    [ B.text artist.nickname ]
                                 ]
+                            ]
+                            [ B.text artist.nickname ]
 
-                            else
-                                []
-                           )
+                      else
+                        B.div [] []
+                     )
+                        :: [ B.img ""
+                                previewArtwork.image_url
+                                [ A.style
+                                    ([ Style.block [ Block.width (percent 100) ]
+                                     ]
+                                        ++ pseudoClassArtistHoverBoxStyle hover
+                                    )
+                                ]
+                           ]
                     )
 
             Nothing ->
