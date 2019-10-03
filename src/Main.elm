@@ -67,6 +67,7 @@ import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Helpers.ViewHelpers exposing (..)
 import Html exposing (pre, text)
+import List.Extra exposing (find)
 import PrintAny
 import Regex
 import RemoteData exposing (RemoteData)
@@ -255,11 +256,11 @@ artistSelector =
     SelectionSet.map3 ArtistLookup
         Artist.nickname
         Artist.id
-        (Artist.preview_artwork preview_artwork_selector)
+        (Artist.preview_artwork artworkSelector)
 
 
-preview_artwork_selector : SelectionSet ArtworkLookup Galerie.Object.Artwork
-preview_artwork_selector =
+artworkSelector : SelectionSet ArtworkLookup Galerie.Object.Artwork
+artworkSelector =
     SelectionSet.map ArtworkLookup
         Artwork.image_url
 
@@ -531,6 +532,10 @@ artistsIndex query data route =
 
 artistsShow : ArtistId -> Data -> Route -> NodeWithStyle Msg
 artistsShow artistId data route =
+    let
+        maybeArtist =
+            find (\artist -> artist.id == artistId) data.artists
+    in
     verticalLayout []
         [ headerViewRow route
         , fillRow []
@@ -541,19 +546,23 @@ artistsShow artistId data route =
                     [ autoColumn []
                         [ verticalLayout []
                             [ autoRow []
-                                []
+                                [ showArtistArtwork ]
                             ]
                         ]
                     , autoColumn []
                         [ verticalLayout []
                             [ autoRow []
-                                []
+                                [ artistDescription ]
                             ]
                         ]
                     ]
                 ]
             ]
         ]
+
+
+showArtistArtwork =
+    B.div [] []
 
 
 artistDescription =
