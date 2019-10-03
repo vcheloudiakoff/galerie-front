@@ -6,6 +6,7 @@ module Main exposing (..)
 
 import BodyBuilder as B exposing (..)
 import BodyBuilder.Attributes as A exposing (checked, href, label)
+import BodyBuilder.Elements.Form exposing (CommonParams, buildInputText)
 import BodyBuilder.Events exposing (onCheck, onClick, onMouseLeave, onMouseOver)
 import BodyBuilder.Router as Router
     exposing
@@ -56,6 +57,8 @@ import Elegant.Padding
 import Elegant.Position as Position
 import Elegant.Transform as Transform
 import Elegant.Typography as Typography
+import Galerie.InputObject
+import Galerie.Mutation as Mutation
 import Galerie.Object
 import Galerie.Object.Artist as Artist
 import Galerie.Object.Artwork as Artwork
@@ -67,6 +70,7 @@ import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Helpers.ViewHelpers exposing (..)
 import Html exposing (pre, text)
+import Maybe.Extra
 import PrintAny
 import Regex
 import RemoteData exposing (RemoteData)
@@ -98,6 +102,18 @@ initData =
     , toggleDebugView = False
     , artists = []
     , maybeHoveredArtistId = Nothing
+    , artistInputType = draftArtistInputType
+    }
+
+
+draftArtistInputType =
+    { exhibition_ids = []
+    , artwork_ids = []
+    , first_name = ""
+    , last_name = ""
+    , nickname = ""
+    , description = ""
+    , preview_artwork_id = Absent
     }
 
 
@@ -106,6 +122,10 @@ type alias Flags =
 
 
 type alias ArtistId =
+    String
+
+
+type alias ArtworkId =
     String
 
 
@@ -124,37 +144,42 @@ type Route
     | ExhibitionsShow ExhibitionId
     | GalerieIndex
     | ContactIndex
+    | NewArtist
 
 
 type HistoryMsg
-    = ArtistIndex
-    | ArtistShow ArtistId
-    | ExhibitionIndex
-    | ExhibitionShow ExhibitionId
-    | GalerieMsg
-    | ContactMsg
+    = GoToArtistIndex
+    | GoToArtistShow ArtistId
+    | GoToExhibitionIndex
+    | GoToExhibitionShow ExhibitionId
+    | GoToGalerieMsg
+    | GoToContactMsg
+    | GoToNewArtist
 
 
 handleHistory : HistoryMsg -> MyHistory -> MyHistory
-handleHistory route history =
-    case route of
-        ArtistIndex ->
+handleHistory historyMsg history =
+    case historyMsg of
+        GoToArtistIndex ->
             history |> push (Router.pageWithoutTransition ArtistsIndex)
 
-        ArtistShow id ->
+        GoToArtistShow id ->
             history |> push (Router.pageWithoutTransition (ArtistsShow id))
 
-        ExhibitionIndex ->
+        GoToExhibitionIndex ->
             history |> push (Router.pageWithoutTransition ExhibitionsIndex)
 
-        ExhibitionShow id ->
+        GoToExhibitionShow id ->
             history |> push (Router.pageWithoutTransition (ExhibitionsShow id))
 
-        GalerieMsg ->
+        GoToGalerieMsg ->
             history |> push (Router.pageWithoutTransition GalerieIndex)
 
-        ContactMsg ->
+        GoToContactMsg ->
             history |> push (Router.pageWithoutTransition ContactIndex)
+
+        GoToNewArtist ->
+            history |> push (Router.pageWithoutTransition NewArtist)
 
 
 view : String -> Model -> NodeWithStyle Msg
@@ -190,6 +215,9 @@ pageView query data { route } transition =
         ContactIndex ->
             contactIndex query data route
 
+        NewArtist ->
+            newArtistView data route
+
 
 
 ---- SUBSCRIPTION ----
@@ -212,6 +240,9 @@ type Msg
     | MouseArtistHover ArtistId
     | MouseArtistLeave
     | ToggleAliases Bool
+    | ChangeBufferNickName String
+    | SendBufferArtist
+    | GotArtist (RemoteData (Graphql.Http.Error (Maybe ArtistLookup)) (Maybe ArtistLookup))
 
 
 type alias Data =
@@ -220,6 +251,7 @@ type alias Data =
     , toggleDebugView : Bool
     , artists : List ArtistLookup
     , maybeHoveredArtistId : Maybe ArtistId
+    , artistInputType : Galerie.InputObject.ArtistInputType
     }
 
 
@@ -246,7 +278,7 @@ type alias ArtworkLookup =
 type alias ArtistLookup =
     { nickname : String
     , id : String
-    , preview_artwork : Maybe ArtworkLookup
+    , previewArtwork : Maybe ArtworkLookup
     }
 
 
@@ -275,6 +307,20 @@ update msg model =
             model.data
     in
     case msg of
+        HistoryMsgWrapper historyMsg ->
+            ( { model | history = handleHistory historyMsg model.history }, Cmd.none )
+
+        StandardHistoryWrapper historyMsg ->
+            model |> handleStandardHistory historyMsg
+
+        GotArtist artistResponse ->
+            ( model, Cmd.none )
+
+        -- case artistResponse of
+        --     RemoteData.Success receiveData ->
+        --         ( { model | data = { data | response = response, artists = receiveData.artists } }, Cmd.none )
+        --     _ ->
+        --         ( { model | data = { data | response = response } }, Cmd.none )
         GotResponse response ->
             case response of
                 RemoteData.Success receiveData ->
@@ -295,11 +341,22 @@ update msg model =
         MouseArtistLeave ->
             ( { model | data = { data | maybeHoveredArtistId = Nothing } }, Cmd.none )
 
-        HistoryMsgWrapper historyMsg ->
-            ( { model | history = handleHistory historyMsg model.history }, Cmd.none )
+        ChangeBufferNickName nickname ->
+            let
+                artistInputType =
+                    data.artistInputType
+            in
+            ( { model
+                | data =
+                    { data
+                        | artistInputType = { artistInputType | nickname = nickname }
+                    }
+              }
+            , Cmd.none
+            )
 
-        StandardHistoryWrapper historyMsg ->
-            model |> handleStandardHistory historyMsg
+        SendBufferArtist ->
+            ( model, createArtist data )
 
 
 makeRequest : Cmd Msg
@@ -313,6 +370,13 @@ rootQuery : SelectionSet Response RootQuery
 rootQuery =
     SelectionSet.map Response
         (Query.artists (\n -> { n | order_by = Present "nickname asc" }) artistSelector)
+
+
+createArtist : Data -> Cmd Msg
+createArtist data =
+    sendBufferArtist data
+        |> Graphql.Http.mutationRequest "http://localhost:3000/graphql"
+        |> Graphql.Http.send (RemoteData.fromResult >> GotArtist)
 
 
 
@@ -398,10 +462,10 @@ headerViewRow currentRoute =
             , fillColumn [] []
             , autoColumn []
                 [ horizontalCenteredLayout []
-                    [ buttonNav currentRoute ArtistIndex [ B.text "ARTISTES" ]
-                    , buttonNav currentRoute ExhibitionIndex [ B.text "EXPOSITIONS" ]
-                    , buttonNav currentRoute GalerieMsg [ B.text "GALERIE" ]
-                    , buttonNav currentRoute ContactMsg [ B.text "CONTACT" ]
+                    [ buttonNav currentRoute GoToArtistIndex [ B.text "ARTISTES" ]
+                    , buttonNav currentRoute GoToExhibitionIndex [ B.text "EXPOSITIONS" ]
+                    , buttonNav currentRoute GoToGalerieMsg [ B.text "GALERIE" ]
+                    , buttonNav currentRoute GoToContactMsg [ B.text "CONTACT" ]
                     ]
                 ]
             ]
@@ -421,9 +485,14 @@ backButton =
     B.div [ onClick <| StandardHistoryWrapper Back ] [ B.text "< Retour" ]
 
 
+addArtistButton : NodeWithStyle Msg
+addArtistButton =
+    B.div [ onClick <| HistoryMsgWrapper GoToNewArtist ] [ B.text "+ Ajouter un artiste" ]
+
+
 addBoldIfRouteMatches currentRoute historyMsg =
     case historyMsg of
-        ArtistIndex ->
+        GoToArtistIndex ->
             case currentRoute of
                 ArtistsIndex ->
                     [ Box.typography [ Typography.bold ] ]
@@ -434,7 +503,7 @@ addBoldIfRouteMatches currentRoute historyMsg =
                 _ ->
                     []
 
-        ArtistShow _ ->
+        GoToArtistShow _ ->
             case currentRoute of
                 ArtistsIndex ->
                     [ Box.typography [ Typography.bold ] ]
@@ -445,7 +514,7 @@ addBoldIfRouteMatches currentRoute historyMsg =
                 _ ->
                     []
 
-        ExhibitionIndex ->
+        GoToExhibitionIndex ->
             case currentRoute of
                 ExhibitionsIndex ->
                     [ Box.typography [ Typography.bold ] ]
@@ -456,7 +525,7 @@ addBoldIfRouteMatches currentRoute historyMsg =
                 _ ->
                     []
 
-        ExhibitionShow _ ->
+        GoToExhibitionShow _ ->
             case currentRoute of
                 ExhibitionsIndex ->
                     [ Box.typography [ Typography.bold ] ]
@@ -467,7 +536,7 @@ addBoldIfRouteMatches currentRoute historyMsg =
                 _ ->
                     []
 
-        GalerieMsg ->
+        GoToGalerieMsg ->
             case currentRoute of
                 GalerieIndex ->
                     [ Box.typography [ Typography.bold ] ]
@@ -475,13 +544,16 @@ addBoldIfRouteMatches currentRoute historyMsg =
                 _ ->
                     []
 
-        ContactMsg ->
+        GoToContactMsg ->
             case currentRoute of
                 ContactIndex ->
                     [ Box.typography [ Typography.bold ] ]
 
                 _ ->
                     []
+
+        _ ->
+            []
 
 
 
@@ -492,12 +564,13 @@ artistsIndex : String -> Data -> Route -> NodeWithStyle Msg
 artistsIndex query data route =
     let
         artists =
-            data.artists
+            List.filter (\artist -> Maybe.Extra.isJust artist.previewArtwork) data.artists
     in
     B.div []
         [ B.p [] [ toggleDebugViewCheckbox data ]
         , verticalLayout []
             [ headerViewRow route
+            , autoRow [] [ horizontallyCentered [ addArtistButton ] ]
             , fillRow []
                 [ B.div [ A.style [ Style.box [ Box.paddingTop (px 96), Box.paddingHorizontal (px 100) ] ] ]
                     [ B.grid
@@ -518,7 +591,7 @@ artistsIndex query data route =
                                 ]
                             ]
                         ]
-                        (List.map (showPreviewArtwork data.maybeHoveredArtistId) (artists ++ artists ++ artists))
+                        (List.map (showPreviewArtwork data.maybeHoveredArtistId) artists)
                     ]
                 ]
             ]
@@ -547,12 +620,12 @@ showPreviewArtwork maybeHoveredArtistId artist =
                     False
     in
     B.gridItem []
-        [ case artist.preview_artwork of
-            Just preview_artwork ->
+        [ case artist.previewArtwork of
+            Just previewArtwork ->
                 B.div
                     ([ A.style
                         [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ] ]
-                     , onClick (HistoryMsgWrapper <| ArtistShow artist.id)
+                     , onClick (HistoryMsgWrapper <| GoToArtistShow artist.id)
                      ]
                         ++ (if hover then
                                 [ onMouseLeave MouseArtistLeave ]
@@ -562,7 +635,7 @@ showPreviewArtwork maybeHoveredArtistId artist =
                            )
                     )
                     ([ B.img ""
-                        preview_artwork.image_url
+                        previewArtwork.image_url
                         [ A.style
                             ([ Style.block [ Block.width (percent 100) ]
                              ]
@@ -632,3 +705,32 @@ galerieIndex query data route =
 contactIndex query data route =
     verticalLayout []
         [ headerViewRow route ]
+
+
+newArtistView : Data -> Route -> NodeWithStyle Msg
+newArtistView data route =
+    verticalLayout []
+        [ headerViewRow route
+        , artistForm
+        ]
+
+
+artistForm =
+    autoRow []
+        [ buildInputText
+            { label = "Surnom d'artiste"
+            , placeholder = Just "Justin Biever"
+            , error = Nothing
+            }
+            "nickname"
+            ChangeBufferNickName
+        , B.div
+            [ A.style [ Style.box [ Box.cursorPointer ] ]
+            , onClick <| SendBufferArtist
+            ]
+            [ B.text "Sauvegarder l'artiste" ]
+        ]
+
+
+sendBufferArtist data =
+    Mutation.create_artist { artist = data.artistInputType } artistSelector
