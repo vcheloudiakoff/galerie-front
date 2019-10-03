@@ -22,34 +22,34 @@ buildArtistInputType required fillOptionals =
     let
         optionals =
             fillOptionals
-                { exhibition_ids = Absent, artwork_ids = Absent, first_name = Absent, last_name = Absent, description = Absent, preview_artwork_id = Absent }
+                { preview_artwork_id = Absent }
     in
-    { exhibition_ids = optionals.exhibition_ids, artwork_ids = optionals.artwork_ids, first_name = optionals.first_name, last_name = optionals.last_name, nickname = required.nickname, description = optionals.description, preview_artwork_id = optionals.preview_artwork_id }
+    { exhibition_ids = required.exhibition_ids, artwork_ids = required.artwork_ids, first_name = required.first_name, last_name = required.last_name, nickname = required.nickname, description = required.description, preview_artwork_id = optionals.preview_artwork_id }
 
 
 type alias ArtistInputTypeRequiredFields =
-    { nickname : String }
+    { exhibition_ids : List String
+    , artwork_ids : List String
+    , first_name : String
+    , last_name : String
+    , nickname : String
+    , description : String
+    }
 
 
 type alias ArtistInputTypeOptionalFields =
-    { exhibition_ids : OptionalArgument (List (Maybe String))
-    , artwork_ids : OptionalArgument (List (Maybe String))
-    , first_name : OptionalArgument String
-    , last_name : OptionalArgument String
-    , description : OptionalArgument String
-    , preview_artwork_id : OptionalArgument String
-    }
+    { preview_artwork_id : OptionalArgument String }
 
 
 {-| Type for the ArtistInputType input object.
 -}
 type alias ArtistInputType =
-    { exhibition_ids : OptionalArgument (List (Maybe String))
-    , artwork_ids : OptionalArgument (List (Maybe String))
-    , first_name : OptionalArgument String
-    , last_name : OptionalArgument String
+    { exhibition_ids : List String
+    , artwork_ids : List String
+    , first_name : String
+    , last_name : String
     , nickname : String
-    , description : OptionalArgument String
+    , description : String
     , preview_artwork_id : OptionalArgument String
     }
 
@@ -59,7 +59,7 @@ type alias ArtistInputType =
 encodeArtistInputType : ArtistInputType -> Value
 encodeArtistInputType input =
     Encode.maybeObject
-        [ ( "exhibition_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.exhibition_ids ), ( "artwork_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.artwork_ids ), ( "first_name", Encode.string |> Encode.optional input.first_name ), ( "last_name", Encode.string |> Encode.optional input.last_name ), ( "nickname", Encode.string input.nickname |> Just ), ( "description", Encode.string |> Encode.optional input.description ), ( "preview_artwork_id", Encode.string |> Encode.optional input.preview_artwork_id ) ]
+        [ ( "exhibition_ids", (Encode.string |> Encode.list) input.exhibition_ids |> Just ), ( "artwork_ids", (Encode.string |> Encode.list) input.artwork_ids |> Just ), ( "first_name", Encode.string input.first_name |> Just ), ( "last_name", Encode.string input.last_name |> Just ), ( "nickname", Encode.string input.nickname |> Just ), ( "description", Encode.string input.description |> Just ), ( "preview_artwork_id", Encode.string |> Encode.optional input.preview_artwork_id ) ]
 
 
 buildArtworkInputType : ArtworkInputTypeRequiredFields -> (ArtworkInputTypeOptionalFields -> ArtworkInputTypeOptionalFields) -> ArtworkInputType
