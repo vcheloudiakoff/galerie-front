@@ -752,7 +752,7 @@ artistForm =
     autoRow []
         [ buildInputText
             { label = "Surnom d'artiste"
-            , placeholder = Just "Justin Biever"
+            , placeholder = Just "Julian Beever"
             , error = Nothing
             }
             "nickname"
