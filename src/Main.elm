@@ -280,15 +280,19 @@ type alias ArtistLookup =
     { nickname : String
     , id : String
     , previewArtwork : Maybe ArtworkLookup
+    , artworks : List ArtworkLookup
+    , description : String
     }
 
 
 artistSelector : SelectionSet ArtistLookup Galerie.Object.Artist
 artistSelector =
-    SelectionSet.map3 ArtistLookup
+    SelectionSet.map5 ArtistLookup
         Artist.nickname
         Artist.id
         (Artist.preview_artwork artworkSelector)
+        (Artist.artworks artworkSelector)
+        Artist.description
 
 
 artworkSelector : SelectionSet ArtworkLookup Galerie.Object.Artwork
@@ -607,39 +611,66 @@ artistsShow : ArtistId -> Data -> Route -> NodeWithStyle Msg
 artistsShow artistId data route =
     let
         maybeArtist =
-            find (\artist -> artist.id == artistId) data.artists
+            find (\a -> a.id == artistId) data.artists
     in
     verticalLayout []
         [ headerViewRow route
         , fillRow []
             [ B.div [ A.style [ Style.box [ Box.paddingTop (px 96), Box.paddingHorizontal (px 100) ] ] ]
                 [ backButton
-                , horizontalLayout
-                    []
-                    [ autoColumn []
-                        [ verticalLayout []
-                            [ autoRow []
-                                [ showArtistArtwork ]
+                , case maybeArtist of
+                    Just artist ->
+                        horizontalLayout
+                            []
+                            [ autoColumn []
+                                [ verticalLayout []
+                                    [ autoRow []
+                                        [ showArtistArtworks (artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks) ]
+                                    ]
+                                ]
+                            , pxColumn 516
+                                []
+                                [ verticalLayout []
+                                    [ autoRow []
+                                        [ artistDescription artist ]
+                                    ]
+                                ]
                             ]
-                        ]
-                    , autoColumn []
-                        [ verticalLayout []
-                            [ autoRow []
-                                [ artistDescription ]
-                            ]
-                        ]
-                    ]
+
+                    Nothing ->
+                        B.div [] [ B.text "L'artiste n'existe pas, veuillez recharger la page." ]
                 ]
             ]
         ]
 
 
-showArtistArtwork =
-    B.div [] []
+showArtistArtworks artworks =
+    B.div [ A.style [ Style.box [ Box.paddingHorizontal (px 100) ] ] ]
+        [ B.grid
+            [ displayBlock
+            , fillHeight
+            , gridContainerProperties
+                [ Grid.columns
+                    [ Grid.template
+                        [ Repeat Grid.autofill [ px 348 ] ]
+                    , Grid.alignItems (Grid.alignWrapper Grid.center)
+                    , Grid.gap (px 76)
+                    ]
+                , Grid.rows
+                    [ Grid.template
+                        [ Repeat Grid.autofill [ px 230 ] ]
+                    , Grid.align Grid.center
+                    , Grid.gap (px 76)
+                    ]
+                ]
+            ]
+            (List.map showArtwork artworks)
+        ]
 
 
-artistDescription =
-    B.div [] []
+artistDescription : ArtistLookup -> NodeWithStyle Msg
+artistDescription artist =
+    B.div [] [ B.text artist.description ]
 
 
 showPreviewArtwork : Maybe ArtistId -> ArtistLookup -> GridItem Msg
@@ -705,6 +736,24 @@ showPreviewArtwork maybeHoveredArtistId artist =
 
             Nothing ->
                 B.div [] []
+        ]
+
+
+showArtwork : ArtworkLookup -> GridItem Msg
+showArtwork artwork =
+    B.gridItem []
+        [ B.div
+            [ A.style [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ] ]
+
+            -- , onClick (HistoryMsgWrapper <| GoToArtistShow artist.id)
+            ]
+            [ B.img ""
+                artwork.image_url
+                [ A.style
+                    [ Style.block [ Block.width (percent 100) ]
+                    ]
+                ]
+            ]
         ]
 
 
