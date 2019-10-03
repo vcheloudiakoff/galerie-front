@@ -6,6 +6,6 @@
   },
   "devDependencies": {
     "@dillonkearns/elm-graphql": "^3.6.2",
-    "elm-live": "^4.0.0-rc.1"
+    "elm-live": "^4.0.0"
   }
 }
