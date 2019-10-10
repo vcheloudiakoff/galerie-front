@@ -30,6 +30,7 @@ import Elegant exposing (percent, px, vw)
 import Elegant.Block as Block
 import Elegant.Box as Box
 import Elegant.Cursor as Cursor
+import Elegant.Display as Display
 import Elegant.Extra
     exposing
         ( alignCenter
@@ -53,6 +54,8 @@ import Elegant.Extra
         , typography
         )
 import Elegant.Grid as Grid exposing (Repeatable(..), autofill)
+import Elegant.Margin as Margin
+import Elegant.Overflow as Overflow
 import Elegant.Padding
 import Elegant.Position as Position
 import Elegant.Transform as Transform
@@ -103,8 +106,10 @@ initData =
     , response = RemoteData.Loading
     , toggleDebugView = False
     , artists = []
+    , artworks = []
     , maybeHoveredArtistId = Nothing
     , artistInputType = draftArtistInputType
+    , maybeZoomedArtworkId = Nothing
     }
 
 
@@ -186,14 +191,17 @@ handleHistory historyMsg history =
 
 view : String -> Model -> NodeWithStyle Msg
 view query ({ history, data } as model) =
-    B.div
-        [ A.style
-            [ Style.box
-                [ Box.fontFamilySansSerif
+    B.div []
+        [ ( Html.node "style" [] [ Html.text "body {display: grid} html {display: grid}" ], [] )
+        , B.div
+            [ A.style
+                [ Style.box
+                    [ Box.fontFamilySansSerif
+                    ]
                 ]
             ]
+            [ historyView (pageView query data) history ]
         ]
-        [ historyView (pageView query data) history ]
 
 
 pageView : String -> Data -> Page Route Msg -> Maybe (Transition Route Msg) -> NodeWithStyle Msg
@@ -240,11 +248,13 @@ type Msg
     | ToggleDebugView Bool
     | GotResponse (RemoteData (Graphql.Http.Error Response) Response)
     | MouseArtistHover ArtistId
-    | MouseArtistLeave
+    | RemoveHover
     | ToggleAliases Bool
     | ChangeBufferNickName String
     | SendBufferArtist
     | GotArtist (RemoteData (Graphql.Http.Error (Maybe ArtistLookup)) (Maybe ArtistLookup))
+    | ZoomArtwork ArtworkId
+    | UnzoomArtwork
 
 
 type alias Data =
@@ -252,8 +262,10 @@ type alias Data =
     , hideAliases : Bool
     , toggleDebugView : Bool
     , artists : List ArtistLookup
+    , artworks : List ArtworkLookup
     , maybeHoveredArtistId : Maybe ArtistId
     , artistInputType : Galerie.InputObject.ArtistInputType
+    , maybeZoomedArtworkId : Maybe ArtworkId
     }
 
 
@@ -269,11 +281,13 @@ type alias Model =
 
 type alias Response =
     { artists : List ArtistLookup
+    , artworks : List ArtworkLookup
     }
 
 
 type alias ArtworkLookup =
     { image_url : String
+    , id : ArtworkId
     }
 
 
@@ -306,8 +320,9 @@ artistSelector =
 
 artworkSelector : SelectionSet ArtworkLookup Galerie.Object.Artwork
 artworkSelector =
-    SelectionSet.map ArtworkLookup
+    SelectionSet.map2 ArtworkLookup
         Artwork.image_url
+        Artwork.id
 
 
 
@@ -322,7 +337,7 @@ update msg model =
     in
     case msg of
         HistoryMsgWrapper historyMsg ->
-            ( { model | history = handleHistory historyMsg model.history }, Cmd.none )
+            ( { model | history = handleHistory historyMsg model.history, data = { data | maybeHoveredArtistId = Nothing } }, Cmd.none )
 
         StandardHistoryWrapper historyMsg ->
             model |> handleStandardHistory historyMsg
@@ -352,8 +367,14 @@ update msg model =
         MouseArtistHover artistId ->
             ( { model | data = { data | maybeHoveredArtistId = Just artistId } }, Cmd.none )
 
-        MouseArtistLeave ->
+        RemoveHover ->
             ( { model | data = { data | maybeHoveredArtistId = Nothing } }, Cmd.none )
+
+        ZoomArtwork artworkId ->
+            ( { model | data = { data | maybeZoomedArtworkId = Just artworkId } }, Cmd.none )
+
+        UnzoomArtwork ->
+            ( { model | data = { data | maybeZoomedArtworkId = Nothing } }, Cmd.none )
 
         ChangeBufferNickName nickname ->
             let
@@ -382,8 +403,9 @@ makeRequest =
 
 rootQuery : SelectionSet Response RootQuery
 rootQuery =
-    SelectionSet.map Response
+    SelectionSet.map2 Response
         (Query.artists (\n -> { n | order_by = Present "nickname asc" }) artistSelector)
+        (Query.artworks (\n -> n) artworkSelector)
 
 
 createArtist : Data -> Cmd Msg
@@ -472,7 +494,7 @@ headerViewRow currentRoute =
     pxRow 168
         []
         [ horizontalLayout []
-            [ pxColumn 128 [] [ B.img "galerie cheloudiakoff" "public/logo.svg" [] ]
+            [ pxColumn 128 [] [ B.img "galerie cheloudiakoff" "public/logo.svg" [ positionFixed ] ]
             , fillColumn [] []
             , autoColumn []
                 [ horizontalCenteredLayout []
@@ -487,17 +509,23 @@ headerViewRow currentRoute =
 
 
 buttonNav : Route -> HistoryMsg -> List (NodeWithStyle Msg) -> CustomGridItem Msg
-buttonNav currentRoute historyMsg =
+buttonNav currentRoute historyMsg content =
     pxColumn 156
         [ A.style [ Style.box ([ Box.cursorPointer ] ++ addBoldIfRouteMatches currentRoute historyMsg) ]
         , onClick <| HistoryMsgWrapper historyMsg
         ]
+        [ span [ positionFixed ] content ]
+
+
+positionFixed =
+    A.style [ Style.box [ Box.position (Position.fixed []) ] ]
 
 
 backButton : NodeWithStyle Msg
 backButton =
     B.div
-        [ A.style [ Style.box [ Box.cursorPointer ] ]
+        [ cursorPointer
+        , positionFixed
         , onClick <| StandardHistoryWrapper Back
         ]
         [ B.text "< Retour" ]
@@ -638,33 +666,50 @@ artistsShow artistId data route =
     let
         maybeArtist =
             find (\artist -> artist.id == artistId) data.artists
-    in
-    verticalLayout []
-        [ headerViewRow route
-        , fillRow []
-            [ B.div [ A.style [ Style.box [ Box.paddingTop (px 96), Box.paddingHorizontal (px 100) ] ] ]
-                [ backButton
-                , case maybeArtist of
-                    Just artist ->
-                        horizontalLayout
-                            []
-                            [ autoColumn []
-                                [ verticalLayout []
-                                    [ autoRow []
-                                        [ showArtistArtworks (artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks) ]
-                                    ]
-                                ]
-                            , pxColumn 516
-                                []
-                                [ verticalLayout []
-                                    [ autoRow []
-                                        [ artistDescription artist ]
-                                    ]
-                                ]
-                            ]
 
-                    Nothing ->
-                        B.div [] [ B.text "L'artiste n'existe pas, veuillez recharger la page." ]
+        ( artworkZoomed, styleOfLayout ) =
+            case data.maybeZoomedArtworkId of
+                Nothing ->
+                    ( B.div [] [], [] )
+
+                Just zoomedArtworkId ->
+                    case find (\artwork -> artwork.id == zoomedArtworkId) data.artworks of
+                        Nothing ->
+                            ( B.div [] [], [] )
+
+                        Just zoomedArtwork ->
+                            -- set fixed image in middle of screen + style OPACITY
+                            ( B.div [] [ B.text "YOYOYOYOYOY" ], [ A.style [ Style.box [ Box.opacity 0.55 ] ] ] )
+    in
+    B.div []
+        [ artworkZoomed
+        , verticalLayout styleOfLayout
+            [ headerViewRow route
+            , fillRow []
+                [ B.div [ A.style [ Style.box [ Box.paddingTop (px 96), Box.paddingHorizontal (px 100) ] ] ]
+                    [ backButton
+                    , case maybeArtist of
+                        Just artist ->
+                            horizontalLayout
+                                []
+                                [ autoColumn []
+                                    [ verticalLayout []
+                                        [ autoRow []
+                                            [ showArtistArtworks (artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks) ]
+                                        ]
+                                    ]
+                                , column (Grid.sizeUnitVal (percent 42))
+                                    []
+                                    [ verticalLayout []
+                                        [ autoRow []
+                                            [ artistDescription artist ]
+                                        ]
+                                    ]
+                                ]
+
+                        Nothing ->
+                            B.div [] [ B.text "L'artiste n'existe pas, veuillez recharger la page." ]
+                    ]
                 ]
             ]
         ]
@@ -672,10 +717,11 @@ artistsShow artistId data route =
 
 showArtistArtworks : List ArtworkLookup -> NodeWithStyle Msg
 showArtistArtworks artworks =
-    B.div [ A.style [ Style.box [ Box.paddingHorizontal (px 100) ] ] ]
+    B.div
+        []
         [ B.grid
-            [ displayBlock
-            , fillHeight
+            [ fillHeight
+            , paddingVertical (px 40)
             , gridContainerProperties
                 [ Grid.columns
                     [ Grid.template
@@ -697,7 +743,7 @@ showArtistArtworks artworks =
 
 artistDescription : ArtistLookup -> NodeWithStyle Msg
 artistDescription artist =
-    B.div [] [ B.text artist.description ]
+    B.div [ positionFixed, A.style [ Style.box [ Box.margin [ Margin.left <| Margin.width (px 60), Margin.right <| Margin.width (px 126) ] ] ] ] [ B.text artist.description ]
 
 
 showPreviewArtwork : Maybe ArtistId -> ArtistWithArtworks -> GridItem Msg
@@ -717,7 +763,7 @@ showPreviewArtwork maybeHoveredArtistId artistWithArtworks =
     B.gridItem []
         [ B.div
             ((if hover then
-                onMouseLeave MouseArtistLeave
+                onMouseLeave RemoveHover
 
               else
                 onMouseOver (MouseArtistHover artistWithArtworks.id)
@@ -768,9 +814,10 @@ showArtwork : ArtworkLookup -> GridItem Msg
 showArtwork artwork =
     B.gridItem []
         [ B.div
-            [ A.style [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ] ]
-
-            -- , onClick (HistoryMsgWrapper <| GoToArtistShow artist.id)
+            [ A.style
+                [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ]
+                ]
+            , onClick <| ZoomArtwork artwork.id
             ]
             [ B.img ""
                 artwork.image_url
