@@ -580,10 +580,6 @@ addBoldIfRouteMatches currentRoute historyMsg =
 
 artistsIndex : String -> Data -> Route -> NodeWithStyle Msg
 artistsIndex query data route =
-    let
-        artistsWithArtworks =
-            getArtistsWithArtworks data.artists
-    in
     B.div []
         [ B.p [] [ toggleDebugViewCheckbox data ]
         , verticalLayout []
@@ -609,7 +605,7 @@ artistsIndex query data route =
                                 ]
                             ]
                         ]
-                        (List.map (showPreviewArtwork data.maybeHoveredArtistId) artistsWithArtworks)
+                        (List.map (showPreviewArtwork data.maybeHoveredArtistId) (getArtistsWithArtworks data.artists))
                     ]
                 ]
             ]
@@ -641,7 +637,7 @@ artistsShow : ArtistId -> Data -> Route -> NodeWithStyle Msg
 artistsShow artistId data route =
     let
         maybeArtist =
-            find (\a -> a.id == artistId) data.artists
+            find (\artist -> artist.id == artistId) data.artists
     in
     verticalLayout []
         [ headerViewRow route
