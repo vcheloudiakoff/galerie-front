@@ -106,8 +106,10 @@ initData =
     , response = RemoteData.Loading
     , toggleDebugView = False
     , artists = []
+    , artworks = []
     , maybeHoveredArtistId = Nothing
     , artistInputType = draftArtistInputType
+    , maybeZoomedArtworkId = Nothing
     }
 
 
@@ -251,6 +253,8 @@ type Msg
     | ChangeBufferNickName String
     | SendBufferArtist
     | GotArtist (RemoteData (Graphql.Http.Error (Maybe ArtistLookup)) (Maybe ArtistLookup))
+    | ZoomArtwork ArtworkId
+    | UnzoomArtwork
 
 
 type alias Data =
@@ -258,8 +262,10 @@ type alias Data =
     , hideAliases : Bool
     , toggleDebugView : Bool
     , artists : List ArtistLookup
+    , artworks : List ArtworkLookup
     , maybeHoveredArtistId : Maybe ArtistId
     , artistInputType : Galerie.InputObject.ArtistInputType
+    , maybeZoomedArtworkId : Maybe ArtworkId
     }
 
 
@@ -275,11 +281,13 @@ type alias Model =
 
 type alias Response =
     { artists : List ArtistLookup
+    , artworks : List ArtworkLookup
     }
 
 
 type alias ArtworkLookup =
     { image_url : String
+    , id : ArtworkId
     }
 
 
@@ -312,8 +320,9 @@ artistSelector =
 
 artworkSelector : SelectionSet ArtworkLookup Galerie.Object.Artwork
 artworkSelector =
-    SelectionSet.map ArtworkLookup
+    SelectionSet.map2 ArtworkLookup
         Artwork.image_url
+        Artwork.id
 
 
 
@@ -361,6 +370,12 @@ update msg model =
         RemoveHover ->
             ( { model | data = { data | maybeHoveredArtistId = Nothing } }, Cmd.none )
 
+        ZoomArtwork artworkId ->
+            ( { model | data = { data | maybeZoomedArtworkId = Just artworkId } }, Cmd.none )
+
+        UnzoomArtwork ->
+            ( { model | data = { data | maybeZoomedArtworkId = Nothing } }, Cmd.none )
+
         ChangeBufferNickName nickname ->
             let
                 artistInputType =
@@ -388,8 +403,9 @@ makeRequest =
 
 rootQuery : SelectionSet Response RootQuery
 rootQuery =
-    SelectionSet.map Response
+    SelectionSet.map2 Response
         (Query.artists (\n -> { n | order_by = Present "nickname asc" }) artistSelector)
+        (Query.artworks (\n -> n) artworkSelector)
 
 
 createArtist : Data -> Cmd Msg
@@ -653,34 +669,51 @@ artistsShow : ArtistId -> Data -> Route -> NodeWithStyle Msg
 artistsShow artistId data route =
     let
         maybeArtist =
-            find (\a -> a.id == artistId) data.artists
-    in
-    verticalLayout []
-        [ headerViewRow route
-        , fillRow []
-            [ B.div [ A.style [ Style.box [ Box.paddingTop (px 96), Box.paddingHorizontal (px 100) ] ] ]
-                [ backButton
-                , case maybeArtist of
-                    Just artist ->
-                        horizontalLayout
-                            []
-                            [ autoColumn []
-                                [ verticalLayout []
-                                    [ autoRow []
-                                        [ showArtistArtworks (artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks) ]
-                                    ]
-                                ]
-                            , column (Grid.sizeUnitVal (percent 42))
-                                []
-                                [ verticalLayout []
-                                    [ autoRow []
-                                        [ artistDescription artist ]
-                                    ]
-                                ]
-                            ]
+            find (\artist -> artist.id == artistId) data.artists
 
-                    Nothing ->
-                        B.div [] [ B.text "L'artiste n'existe pas, veuillez recharger la page." ]
+        ( artworkZoomed, styleOfLayout ) =
+            case data.maybeZoomedArtworkId of
+                Nothing ->
+                    ( B.div [] [], [] )
+
+                Just zoomedArtworkId ->
+                    case find (\artwork -> artwork.id == zoomedArtworkId) data.artworks of
+                        Nothing ->
+                            ( B.div [] [], [] )
+
+                        Just zoomedArtwork ->
+                            -- set fixed image in middle of screen + style OPACITY
+                            ( B.div [] [ B.text "YOYOYOYOYOY" ], [ A.style [ Style.box [ Box.opacity 0.55 ] ] ] )
+    in
+    B.div []
+        [ artworkZoomed
+        , verticalLayout styleOfLayout
+            [ headerViewRow route
+            , fillRow []
+                [ B.div [ A.style [ Style.box [ Box.paddingTop (px 96), Box.paddingHorizontal (px 100) ] ] ]
+                    [ backButton
+                    , case maybeArtist of
+                        Just artist ->
+                            horizontalLayout
+                                []
+                                [ autoColumn []
+                                    [ verticalLayout []
+                                        [ autoRow []
+                                            [ showArtistArtworks (artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks ++ artist.artworks) ]
+                                        ]
+                                    ]
+                                , column (Grid.sizeUnitVal (percent 42))
+                                    []
+                                    [ verticalLayout []
+                                        [ autoRow []
+                                            [ artistDescription artist ]
+                                        ]
+                                    ]
+                                ]
+
+                        Nothing ->
+                            B.div [] [ B.text "L'artiste n'existe pas, veuillez recharger la page." ]
+                    ]
                 ]
             ]
         ]
@@ -788,8 +821,7 @@ showArtwork artwork =
             [ A.style
                 [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ]
                 ]
-
-            -- , onClick (HistoryMsgWrapper <| GoToArtistShow artist.id)
+            , onClick <| ZoomArtwork artwork.id
             ]
             [ B.img ""
                 artwork.image_url
