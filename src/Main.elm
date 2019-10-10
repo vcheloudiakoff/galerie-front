@@ -353,7 +353,16 @@ update msg model =
         GotResponse response ->
             case response of
                 RemoteData.Success receiveData ->
-                    ( { model | data = { data | response = response, artists = receiveData.artists } }, Cmd.none )
+                    ( { model
+                        | data =
+                            { data
+                                | response = response
+                                , artists = receiveData.artists
+                                , artworks = receiveData.artworks
+                            }
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( { model | data = { data | response = response } }, Cmd.none )
