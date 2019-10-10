@@ -74,6 +74,7 @@ import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Helpers.ViewHelpers exposing (..)
 import Html exposing (pre, text)
 import List.Extra exposing (find)
+import List.Nonempty exposing (Nonempty)
 import Maybe.Extra
 import PrintAny
 import Regex
@@ -287,6 +288,14 @@ type alias ArtistLookup =
     , id : String
     , previewArtwork : Maybe ArtworkLookup
     , artworks : List ArtworkLookup
+    , description : String
+    }
+
+
+type alias ArtistWithArtworks =
+    { nickname : String
+    , id : String
+    , artworks : ( Nonempty ArtworkLookup, ArtworkLookup )
     , description : String
     }
 
@@ -584,8 +593,8 @@ addBoldIfRouteMatches currentRoute historyMsg =
 artistsIndex : String -> Data -> Route -> NodeWithStyle Msg
 artistsIndex query data route =
     let
-        artists =
-            List.filter (\artist -> Maybe.Extra.isJust artist.previewArtwork) data.artists
+        artistsWithArtworks =
+            getArtistsWithArtworks data.artists
     in
     B.div []
         [ B.p [] [ toggleDebugViewCheckbox data ]
@@ -612,11 +621,32 @@ artistsIndex query data route =
                                 ]
                             ]
                         ]
-                        (List.map (showPreviewArtwork data.maybeHoveredArtistId) artists)
+                        (List.map (showPreviewArtwork data.maybeHoveredArtistId) artistsWithArtworks)
                     ]
                 ]
             ]
         ]
+
+
+getArtistsWithArtworks : List ArtistLookup -> List ArtistWithArtworks
+getArtistsWithArtworks artists =
+    List.concatMap
+        (\artist ->
+            case ( List.Nonempty.fromList artist.artworks, artist.previewArtwork ) of
+                ( Nothing, _ ) ->
+                    []
+
+                ( Just artworks, maybeArtwork ) ->
+                    [ ArtistWithArtworks
+                        artist.nickname
+                        artist.id
+                        ( artworks
+                        , Maybe.withDefault (List.Nonempty.head artworks) maybeArtwork
+                        )
+                        artist.description
+                    ]
+        )
+        artists
 
 
 artistsShow : ArtistId -> Data -> Route -> NodeWithStyle Msg
@@ -656,6 +686,7 @@ artistsShow artistId data route =
         ]
 
 
+showArtistArtworks : List ArtworkLookup -> NodeWithStyle Msg
 showArtistArtworks artworks =
     B.div
         []
@@ -686,69 +717,67 @@ artistDescription artist =
     B.div [ positionFixed, A.style [ Style.box [ Box.margin [ Margin.left <| Margin.width (px 60), Margin.right <| Margin.width (px 126) ] ] ] ] [ B.text artist.description ]
 
 
-showPreviewArtwork : Maybe ArtistId -> ArtistLookup -> GridItem Msg
-showPreviewArtwork maybeHoveredArtistId artist =
+showPreviewArtwork : Maybe ArtistId -> ArtistWithArtworks -> GridItem Msg
+showPreviewArtwork maybeHoveredArtistId artistWithArtworks =
     let
+        ( artworks, previewArtwork ) =
+            artistWithArtworks.artworks
+
         hover =
             case maybeHoveredArtistId of
                 Just hoveredArtistId ->
-                    hoveredArtistId == artist.id
+                    hoveredArtistId == artistWithArtworks.id
 
                 Nothing ->
                     False
     in
     B.gridItem []
-        [ case artist.previewArtwork of
-            Just previewArtwork ->
+        [ B.div
+            ((if hover then
+                onMouseLeave RemoveHover
+
+              else
+                onMouseOver (MouseArtistHover artistWithArtworks.id)
+             )
+                :: [ A.style
+                        [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ] ]
+                   , onClick (HistoryMsgWrapper <| GoToArtistShow artistWithArtworks.id)
+                   ]
+            )
+            ((if hover then
                 B.div
-                    ((if hover then
-                        onMouseLeave RemoveHover
-
-                      else
-                        onMouseOver (MouseArtistHover artist.id)
-                     )
-                        :: [ A.style
-                                [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ] ]
-                           , onClick (HistoryMsgWrapper <| GoToArtistShow artist.id)
-                           ]
-                    )
-                    ((if hover then
-                        B.div
-                            [ A.style
-                                [ Style.box
-                                    [ Box.position
-                                        (Position.absolute
-                                            [ Position.top (percent 50)
-                                            , Position.left (percent 50)
-                                            ]
-                                        )
-                                    , Box.transform
-                                        [ Transform.translateX (percent -50)
-                                        , Transform.translateY (percent -50)
-                                        ]
-                                    , Box.textColor <|
-                                        Color.rgb 0 0 0
+                    [ A.style
+                        [ Style.box
+                            [ Box.position
+                                (Position.absolute
+                                    [ Position.top (percent 50)
+                                    , Position.left (percent 50)
                                     ]
+                                )
+                            , Box.transform
+                                [ Transform.translateX (percent -50)
+                                , Transform.translateY (percent -50)
                                 ]
+                            , Box.textColor <|
+                                Color.rgb 0 0 0
                             ]
-                            [ B.text artist.nickname ]
+                        ]
+                    ]
+                    [ B.text artistWithArtworks.nickname ]
 
-                      else
-                        B.div [] []
-                     )
-                        :: [ B.img ""
-                                previewArtwork.image_url
-                                [ A.style
-                                    ([ Style.block [ Block.width (percent 100) ]
-                                     ]
-                                        ++ pseudoClassArtistHoverBoxStyle hover
-                                    )
-                                ]
-                           ]
-                    )
-
-            Nothing ->
+              else
                 B.div [] []
+             )
+                :: [ B.img ""
+                        previewArtwork.image_url
+                        [ A.style
+                            ([ Style.block [ Block.width (percent 100) ]
+                             ]
+                                ++ pseudoClassArtistHoverBoxStyle hover
+                            )
+                        ]
+                   ]
+            )
         ]
 
 
@@ -759,6 +788,7 @@ showArtwork artwork =
             [ A.style
                 [ Style.box [ Box.position (Position.relative [ Position.all (px 0) ]), Box.cursorPointer ]
                 ]
+
             -- , onClick (HistoryMsgWrapper <| GoToArtistShow artist.id)
             ]
             [ B.img ""
