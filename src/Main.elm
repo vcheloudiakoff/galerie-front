@@ -24,12 +24,14 @@ import BodyBuilder.Router as Router
         )
 import BodyBuilder.Style as Style
 import Browser
+import Browser.Events exposing (onKeyDown)
 import Color
 import Debug exposing (log)
-import Elegant exposing (percent, px, vw)
+import Elegant exposing (percent, px, vh, vw)
 import Elegant.Block as Block
 import Elegant.Box as Box
 import Elegant.Cursor as Cursor
+import Elegant.Dimensions as Dimensions
 import Elegant.Display as Display
 import Elegant.Extra
     exposing
@@ -73,6 +75,7 @@ import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Helpers.ViewHelpers exposing (..)
 import Html exposing (pre, text)
+import Json.Decode as Decode
 import List.Extra exposing (find)
 import List.Nonempty exposing (Nonempty)
 import Maybe.Extra
@@ -235,7 +238,15 @@ pageView query data { route } transition =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    maybeTransitionSubscription model.history
+    Sub.batch
+        [ maybeTransitionSubscription model.history
+        , onKeyDown (Decode.map KeyDowns keyDecoder)
+        ]
+
+
+keyDecoder : Decode.Decoder String
+keyDecoder =
+    Decode.field "key" Decode.string
 
 
 
@@ -254,7 +265,7 @@ type Msg
     | SendBufferArtist
     | GotArtist (RemoteData (Graphql.Http.Error (Maybe ArtistLookup)) (Maybe ArtistLookup))
     | ZoomArtwork ArtworkId
-    | UnzoomArtwork
+    | KeyDowns String
 
 
 type alias Data =
@@ -382,9 +393,6 @@ update msg model =
         ZoomArtwork artworkId ->
             ( { model | data = { data | maybeZoomedArtworkId = Just artworkId } }, Cmd.none )
 
-        UnzoomArtwork ->
-            ( { model | data = { data | maybeZoomedArtworkId = Nothing } }, Cmd.none )
-
         ChangeBufferNickName nickname ->
             let
                 artistInputType =
@@ -401,6 +409,15 @@ update msg model =
 
         SendBufferArtist ->
             ( model, createArtist data )
+
+        KeyDowns code ->
+            ( if code == "Escape" then
+                { model | data = { data | maybeZoomedArtworkId = Nothing } }
+
+              else
+                model
+            , Cmd.none
+            )
 
 
 makeRequest : Cmd Msg
@@ -688,7 +705,52 @@ artistsShow artistId data route =
 
                         Just zoomedArtwork ->
                             -- set fixed image in middle of screen + style OPACITY
-                            ( B.div [] [ B.text "YOYOYOYOYOY" ], [ A.style [ Style.box [ Box.opacity 0.55 ] ] ] )
+                            -- ( B.div
+                            --     [ A.style
+                            --         [ Style.blockProperties
+                            --             [ Display.dimensions [ Dimensions.width (percent 100), Dimensions.height (percent 100) ]
+                            --             ]
+                            --         , Style.box
+                            --             [ Box.zIndex 1
+                            --             , Box.position (Position.absolute [])
+                            --             ]
+                            --         ]
+                            --     ]
+                            --     [ B.img ""
+                            --         zoomedArtwork.image_url
+                            --         [ A.style [ Style.box [ Box.margin [ Margin.bottom <| Margin.width (px 20) ] ] ] ]
+                            --     ]
+                            ( verticalLayout
+                                [ A.style
+                                    [ Style.block
+                                        [ Block.width (vw 100)
+                                        , Block.height (vh 100)
+                                        ]
+                                    ]
+                                ]
+                                [ fillRow [] []
+                                , autoRow []
+                                    [ horizontalLayout []
+                                        [ fillColumn [] []
+                                        , autoColumn []
+                                            [ B.div
+                                                [ A.style
+                                                    [ Style.box
+                                                        [ Box.zIndex 1
+                                                        , Box.position (Position.absolute [])
+                                                        ]
+                                                    ]
+                                                ]
+                                                [ B.img "" zoomedArtwork.image_url []
+                                                ]
+                                            ]
+                                        , fillColumn [] []
+                                        ]
+                                    ]
+                                , fillRow [] []
+                                ]
+                            , [ A.style [ Style.box [ Box.opacity 0.55 ] ] ]
+                            )
     in
     B.div []
         [ artworkZoomed
