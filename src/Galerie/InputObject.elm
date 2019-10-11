@@ -67,18 +67,19 @@ buildArtworkInputType required fillOptionals =
     let
         optionals =
             fillOptionals
-                { exhibition_ids = Absent, title = Absent, description = Absent, techniques = Absent, support = Absent, height = Absent, width = Absent, artist_id = Absent }
+                { exhibition_ids = Absent, description = Absent, techniques = Absent, support = Absent, height = Absent, width = Absent, artist_id = Absent }
     in
-    { exhibition_ids = optionals.exhibition_ids, image_url = required.image_url, title = optionals.title, description = optionals.description, techniques = optionals.techniques, support = optionals.support, height = optionals.height, width = optionals.width, artist_id = optionals.artist_id }
+    { exhibition_ids = optionals.exhibition_ids, image_url = required.image_url, title = required.title, description = optionals.description, techniques = optionals.techniques, support = optionals.support, height = optionals.height, width = optionals.width, artist_id = optionals.artist_id }
 
 
 type alias ArtworkInputTypeRequiredFields =
-    { image_url : String }
+    { image_url : String
+    , title : String
+    }
 
 
 type alias ArtworkInputTypeOptionalFields =
     { exhibition_ids : OptionalArgument (List (Maybe String))
-    , title : OptionalArgument String
     , description : OptionalArgument String
     , techniques : OptionalArgument String
     , support : OptionalArgument String
@@ -93,7 +94,7 @@ type alias ArtworkInputTypeOptionalFields =
 type alias ArtworkInputType =
     { exhibition_ids : OptionalArgument (List (Maybe String))
     , image_url : String
-    , title : OptionalArgument String
+    , title : String
     , description : OptionalArgument String
     , techniques : OptionalArgument String
     , support : OptionalArgument String
@@ -108,7 +109,7 @@ type alias ArtworkInputType =
 encodeArtworkInputType : ArtworkInputType -> Value
 encodeArtworkInputType input =
     Encode.maybeObject
-        [ ( "exhibition_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.exhibition_ids ), ( "image_url", Encode.string input.image_url |> Just ), ( "title", Encode.string |> Encode.optional input.title ), ( "description", Encode.string |> Encode.optional input.description ), ( "techniques", Encode.string |> Encode.optional input.techniques ), ( "support", Encode.string |> Encode.optional input.support ), ( "height", Encode.float |> Encode.optional input.height ), ( "width", Encode.float |> Encode.optional input.width ), ( "artist_id", Encode.string |> Encode.optional input.artist_id ) ]
+        [ ( "exhibition_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.exhibition_ids ), ( "image_url", Encode.string input.image_url |> Just ), ( "title", Encode.string input.title |> Just ), ( "description", Encode.string |> Encode.optional input.description ), ( "techniques", Encode.string |> Encode.optional input.techniques ), ( "support", Encode.string |> Encode.optional input.support ), ( "height", Encode.float |> Encode.optional input.height ), ( "width", Encode.float |> Encode.optional input.width ), ( "artist_id", Encode.string |> Encode.optional input.artist_id ) ]
 
 
 buildExhibitionInputType : (ExhibitionInputTypeOptionalFields -> ExhibitionInputTypeOptionalFields) -> ExhibitionInputType

@@ -74,9 +74,9 @@ techniques =
     Object.selectionForField "(Maybe String)" "techniques" [] (Decode.string |> Decode.nullable)
 
 
-title : SelectionSet (Maybe String) Galerie.Object.Artwork
+title : SelectionSet String Galerie.Object.Artwork
 title =
-    Object.selectionForField "(Maybe String)" "title" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "title" [] Decode.string
 
 
 updated_at : SelectionSet (Maybe String) Galerie.Object.Artwork

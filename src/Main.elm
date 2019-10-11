@@ -69,7 +69,8 @@ import Galerie.Object.Artist as Artist
 import Galerie.Object.Artwork as Artwork
 import Galerie.Query as Query
 import Graphql.Document as Document
-import Graphql.Http
+import Graphql.Http exposing (..)
+import Graphql.Http.GraphqlError
 import Graphql.Operation exposing (RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
@@ -113,7 +114,22 @@ initData =
     , artworks = []
     , maybeHoveredArtistId = Nothing
     , artistInputType = draftArtistInputType
+    , artworkInputType = draftArtworkInputType
     , maybeZoomedArtworkId = Nothing
+    , error = ""
+    }
+
+
+draftArtworkInputType =
+    { title = ""
+    , image_url = ""
+    , artist_id = Absent
+    , width = Absent
+    , height = Absent
+    , description = Absent
+    , exhibition_ids = Absent
+    , support = Absent
+    , techniques = Absent
     }
 
 
@@ -156,6 +172,7 @@ type Route
     | GalerieIndex
     | ContactIndex
     | NewArtist
+    | NewArtwork
 
 
 type HistoryMsg
@@ -166,6 +183,7 @@ type HistoryMsg
     | GoToGalerieMsg
     | GoToContactMsg
     | GoToNewArtist
+    | GoToNewArtwork
 
 
 handleHistory : HistoryMsg -> MyHistory -> MyHistory
@@ -192,20 +210,32 @@ handleHistory historyMsg history =
         GoToNewArtist ->
             history |> push (Router.pageWithoutTransition NewArtist)
 
+        GoToNewArtwork ->
+            history |> push (Router.pageWithoutTransition NewArtwork)
+
 
 view : String -> Model -> NodeWithStyle Msg
 view query ({ history, data } as model) =
-    B.div []
-        [ ( Html.node "style" [] [ Html.text "body {display: grid} html {display: grid}" ], [] )
-        , B.div
-            [ A.style
-                [ Style.box
-                    [ Box.fontFamilySansSerif
+    case data.error of
+        "" ->
+            B.div []
+                [ ( Html.node "style" [] [ Html.text "body {display: grid} html {display: grid}" ], [] )
+                , B.div
+                    [ A.style
+                        [ Style.box
+                            [ Box.fontFamilySansSerif
+                            ]
+                        ]
                     ]
+                    [ historyView (pageView query data) history ]
                 ]
-            ]
-            [ historyView (pageView query data) history ]
-        ]
+
+        error ->
+            ( pre []
+                [ error |> Html.text
+                ]
+            , []
+            )
 
 
 pageView : String -> Data -> Page Route Msg -> Maybe (Transition Route Msg) -> NodeWithStyle Msg
@@ -232,6 +262,9 @@ pageView query data { route } transition =
         NewArtist ->
             newArtistView data route
 
+        NewArtwork ->
+            newArtworkView data route
+
 
 
 ---- SUBSCRIPTION ----
@@ -250,6 +283,11 @@ keyDecoder =
     Decode.field "key" Decode.string
 
 
+errorDecoder : Decode.Decoder String
+errorDecoder =
+    Decode.field "error" Decode.string
+
+
 
 ---- MODEL ----
 
@@ -262,11 +300,26 @@ type Msg
     | MouseArtistHover ArtistId
     | RemoveHover
     | ToggleAliases Bool
-    | ChangeBufferNickName String
     | SendBufferArtist
+    | SendBufferArtwork
     | GotArtist (RemoteData (Graphql.Http.Error (Maybe ArtistLookup)) (Maybe ArtistLookup))
+    | GotArtwork (RemoteData (Graphql.Http.Error (Maybe ArtworkLookup)) (Maybe ArtworkLookup))
     | ZoomArtwork ArtworkId
     | KeyDowns String
+    | ArtistBufferWrapper (ArtistBuffer String)
+
+
+
+-- | ChangeBuffer (BufferWrapper String)
+-- type BufferWrapper str
+--     = ArtistBuffer str
+
+
+type ArtistBuffer str
+    = ArtistNickName str
+    | ArtistFirstName str
+    | ArtistLastName str
+    | ArtistDescription str
 
 
 type alias Data =
@@ -277,7 +330,9 @@ type alias Data =
     , artworks : List ArtworkLookup
     , maybeHoveredArtistId : Maybe ArtistId
     , artistInputType : Galerie.InputObject.ArtistInputType
+    , artworkInputType : Galerie.InputObject.ArtworkInputType
     , maybeZoomedArtworkId : Maybe ArtworkId
+    , error : String
     }
 
 
@@ -298,14 +353,17 @@ type alias Response =
 
 
 type alias ArtworkLookup =
-    { image_url : String
-    , id : ArtworkId
+    { id : ArtworkId
+    , image_url : String
+    , title : String
     }
 
 
 type alias ArtistLookup =
-    { nickname : String
-    , id : String
+    { id : String
+    , nickname : String
+    , firstname : String
+    , lastname : String
     , previewArtwork : Maybe ArtworkLookup
     , artworks : List ArtworkLookup
     , description : String
@@ -313,8 +371,10 @@ type alias ArtistLookup =
 
 
 type alias ArtistWithArtworks =
-    { nickname : String
-    , id : String
+    { id : String
+    , nickname : String
+    , firstname : String
+    , lastname : String
     , artworks : ( Nonempty ArtworkLookup, ArtworkLookup )
     , description : String
     }
@@ -322,9 +382,11 @@ type alias ArtistWithArtworks =
 
 artistSelector : SelectionSet ArtistLookup Galerie.Object.Artist
 artistSelector =
-    SelectionSet.map5 ArtistLookup
-        Artist.nickname
+    SelectionSet.map7 ArtistLookup
         Artist.id
+        Artist.nickname
+        Artist.first_name
+        Artist.last_name
         (Artist.preview_artwork artworkSelector)
         (Artist.artworks artworkSelector)
         Artist.description
@@ -332,9 +394,10 @@ artistSelector =
 
 artworkSelector : SelectionSet ArtworkLookup Galerie.Object.Artwork
 artworkSelector =
-    SelectionSet.map2 ArtworkLookup
-        Artwork.image_url
+    SelectionSet.map3 ArtworkLookup
         Artwork.id
+        Artwork.image_url
+        Artwork.title
 
 
 
@@ -346,6 +409,9 @@ update msg model =
     let
         data =
             model.data
+
+        artistInputType =
+            data.artistInputType
     in
     case msg of
         HistoryMsgWrapper historyMsg ->
@@ -355,6 +421,9 @@ update msg model =
             model |> handleStandardHistory historyMsg
 
         GotArtist artistResponse ->
+            ( model, Cmd.none )
+
+        GotArtwork artworkResponse ->
             ( model, Cmd.none )
 
         -- case artistResponse of
@@ -376,6 +445,31 @@ update msg model =
                     , Cmd.none
                     )
 
+                RemoteData.Failure error ->
+                    case error of
+                        Graphql.Http.HttpError httpError ->
+                            case httpError of
+                                BadUrl str ->
+                                    ( { model | data = { data | error = "BadUrl : " ++ str } }, Cmd.none )
+
+                                Timeout ->
+                                    ( { model | data = { data | error = "Timeout, la requete à mon trop de temps, veuillez recharger le navigateur" } }, Cmd.none )
+
+                                NetworkError ->
+                                    ( { model | data = { data | error = "Vous n'êtes plus connecté à internet" } }, Cmd.none )
+
+                                BadStatus metadata str ->
+                                    ( { model | data = { data | error = "BadStatus : " ++ str } }, Cmd.none )
+
+                                BadPayload err ->
+                                    ( { model | data = { data | error = "BadPayload : " ++ Decode.errorToString err } }, Cmd.none )
+
+                        Graphql.Http.GraphqlError (Graphql.Http.GraphqlError.ParsedData parsedData) graphqlErrors ->
+                            ( { model | data = { data | error = "parsedData err, still need to implement this error" } }, Cmd.none )
+
+                        Graphql.Http.GraphqlError (Graphql.Http.GraphqlError.UnparsedData _) _ ->
+                            ( { model | data = { data | error = "unparsedData, still need to implement this error" } }, Cmd.none )
+
                 _ ->
                     ( { model | data = { data | response = response } }, Cmd.none )
 
@@ -394,15 +488,29 @@ update msg model =
         ZoomArtwork artworkId ->
             ( { model | data = { data | maybeZoomedArtworkId = Just artworkId } }, Cmd.none )
 
-        ChangeBufferNickName nickname ->
-            let
-                artistInputType =
-                    data.artistInputType
-            in
+        -- ChangeBuffer bufferWrapper ->
+        --     ( { model
+        --         | data = changeBuffer model.data bufferWrapper
+        --       }
+        --     , Cmd.none
+        --     )
+        ArtistBufferWrapper artistBuffer ->
             ( { model
                 | data =
                     { data
-                        | artistInputType = { artistInputType | nickname = nickname }
+                        | artistInputType =
+                            case artistBuffer of
+                                ArtistNickName nickName ->
+                                    { artistInputType | nickname = nickName }
+
+                                ArtistFirstName firstName ->
+                                    { artistInputType | first_name = firstName }
+
+                                ArtistLastName lastName ->
+                                    { artistInputType | last_name = lastName }
+
+                                ArtistDescription description ->
+                                    { artistInputType | description = description }
                     }
               }
             , Cmd.none
@@ -410,6 +518,9 @@ update msg model =
 
         SendBufferArtist ->
             ( model, createArtist data )
+
+        SendBufferArtwork ->
+            ( model, createArtwork data )
 
         KeyDowns code ->
             ( if code == "Escape" then
@@ -424,7 +535,7 @@ update msg model =
 makeRequest : Cmd Msg
 makeRequest =
     rootQuery
-        |> Graphql.Http.queryRequest "http://localhost:3000/graphql"
+        |> Graphql.Http.queryRequest endPoint
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 
@@ -438,8 +549,20 @@ rootQuery =
 createArtist : Data -> Cmd Msg
 createArtist data =
     sendBufferArtist data
-        |> Graphql.Http.mutationRequest "http://localhost:3000/graphql"
+        |> Graphql.Http.mutationRequest endPoint
         |> Graphql.Http.send (RemoteData.fromResult >> GotArtist)
+
+
+createArtwork : Data -> Cmd Msg
+createArtwork data =
+    sendBufferArtwork data
+        |> Graphql.Http.mutationRequest endPoint
+        |> Graphql.Http.send (RemoteData.fromResult >> GotArtwork)
+
+
+endPoint : String
+endPoint =
+    "http://localhost:3000/graphql"
 
 
 
@@ -564,6 +687,11 @@ addArtistButton =
     B.div [ onClick <| HistoryMsgWrapper GoToNewArtist ] [ B.text "+ Ajouter un artiste" ]
 
 
+addArtworkButton : NodeWithStyle Msg
+addArtworkButton =
+    B.div [ onClick <| HistoryMsgWrapper GoToNewArtwork ] [ B.text "+ Ajouter une oeuvre" ]
+
+
 addBoldIfRouteMatches currentRoute historyMsg =
     case historyMsg of
         GoToArtistIndex ->
@@ -678,8 +806,10 @@ getArtistsWithArtworks artists =
 
                 ( Just artworks, maybeArtwork ) ->
                     [ ArtistWithArtworks
-                        artist.nickname
                         artist.id
+                        artist.nickname
+                        artist.firstname
+                        artist.lastname
                         ( artworks
                         , Maybe.withDefault (List.Nonempty.head artworks) maybeArtwork
                         )
@@ -758,6 +888,7 @@ artistsShow artistId data route =
         [ artworkZoomed
         , verticalLayout styleOfLayout
             [ headerViewRow route
+            , autoRow [] [ horizontallyCentered [ addArtworkButton ] ]
             , fillRow []
                 [ B.div [ A.style [ Style.box [ Box.paddingTop (px 96), Box.paddingHorizontal (px 100) ] ] ]
                     [ backButton
@@ -942,15 +1073,103 @@ newArtistView data route =
         ]
 
 
+newArtworkView : Data -> Route -> NodeWithStyle Msg
+newArtworkView data route =
+    verticalLayout []
+        [ headerViewRow route
+        , artworkForm
+        ]
+
+
+
+-- changeBuffer : Data -> BufferWrapper String -> Data
+-- changeBuffer data buffer =
+--     let
+--         artistInputType =
+--             data.artistInputType
+-- in
+-- case buffer of
+--     ArtistNickName nickname ->
+--         { data
+--             | artistInputType = { artistInputType | nickname = nickname }
+--         }
+--     ArtistFirstName firstname ->
+--         { data
+--             | artistInputType = { artistInputType | firstname = firstname }
+--         }
+--     ArtistLastName lastname ->
+--         { data
+--             | artistInputType = { artistInputType | lastname = lastname }
+--         }
+--     ArtistDescription description ->
+--         { data
+--             | artistInputType = { artistInputType | description = description }
+--         }
+
+
+artworkForm =
+    autoRow []
+        [ B.div
+            [ A.style [ Style.box [ Box.cursorPointer ] ]
+            , onClick <| SendBufferArtwork
+            ]
+            [ B.text "Sauvegarder l'oeuvre" ]
+        ]
+
+
 artistForm =
     autoRow []
         [ buildInputText
             { label = "Surnom d'artiste"
-            , placeholder = Just "Julian Beever"
+            , placeholder = Just "Saype"
             , error = Nothing
             }
-            "nickname"
-            ChangeBufferNickName
+            ""
+            (ArtistBufferWrapper << ArtistNickName)
+        , buildInputText
+            { label = "Prénom"
+            , placeholder = Just "Jean"
+            , error = Nothing
+            }
+            ""
+            (ArtistBufferWrapper << ArtistFirstName)
+        , buildInputText
+            { label = "Nom"
+            , placeholder = Just "Peinture"
+            , error = Nothing
+            }
+            ""
+            (ArtistBufferWrapper << ArtistLastName)
+        , buildInputText
+            { label = "Description"
+            , placeholder = Just "Description"
+            , error = Nothing
+            }
+            ""
+            (ArtistBufferWrapper << ArtistDescription)
+
+        -- (ChangeBuffer ArtistNickName)
+        -- , buildInputText
+        --     { label = "Prenom"
+        --     , placeholder = Just "Julian Beever"
+        --     , error = Nothing
+        --     }
+        --     "firstname"
+        --     (ChangeBuffer ArtistFirstName)
+        -- , buildInputText
+        --     { label = "Nom"
+        --     , placeholder = Just "Julian Beever"
+        --     , error = Nothing
+        --     }
+        --     "lastname"
+        --     (ChangeBuffer ArtistLastName)
+        -- , buildInputText
+        --     { label = "Description"
+        --     , placeholder = Just "Julian Beever"
+        --     , error = Nothing
+        --     }
+        --     "description"
+        --     (ChangeBuffer ArtistDescription)
         , B.div
             [ A.style [ Style.box [ Box.cursorPointer ] ]
             , onClick <| SendBufferArtist
@@ -961,3 +1180,7 @@ artistForm =
 
 sendBufferArtist data =
     Mutation.create_artist { artist = data.artistInputType } artistSelector
+
+
+sendBufferArtwork data =
+    Mutation.create_artwork { artwork = data.artworkInputType } artworkSelector
