@@ -79,6 +79,7 @@ import Json.Decode as Decode
 import List.Extra exposing (find)
 import List.Nonempty exposing (Nonempty)
 import Maybe.Extra
+import Modifiers exposing (..)
 import PrintAny
 import Regex
 import RemoteData exposing (RemoteData)
@@ -520,7 +521,7 @@ headerViewRow currentRoute =
     pxRow 168
         []
         [ horizontalLayout []
-            [ pxColumn 128 [] [ B.img "galerie cheloudiakoff" "public/logo.svg" [ positionFixed ] ]
+            [ pxColumn 128 [] [ B.img "galerie cheloudiakoff" "public/logo.svg" [ cursorPointer, positionFixed, onClick <| HistoryMsgWrapper GoToArtistIndex ] ]
             , fillColumn [] []
             , autoColumn []
                 [ horizontalCenteredLayout []
@@ -543,6 +544,7 @@ buttonNav currentRoute historyMsg content =
         [ span [ positionFixed ] content ]
 
 
+positionFixed : Modifier (A.BoxContainer a)
 positionFixed =
     A.style [ Style.box [ Box.position (Position.fixed []) ] ]
 
