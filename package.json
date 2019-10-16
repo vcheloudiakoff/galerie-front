@@ -2,7 +2,7 @@
   "name": "galerie-cheloudiakoff",
   "version": "1.0.0",
   "scripts": {
-    "api": "elm-graphql http://localhost:3000/graphql --base Galerie"
+    "api": "elm-graphql https://galerie-api.herokuapp.com/v1/graphql --base Galerie"
   },
   "devDependencies": {
     "@dillonkearns/elm-graphql": "^3.6.2",

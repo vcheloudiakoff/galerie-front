@@ -4,7 +4,36 @@
 
 module Galerie.ScalarCodecs exposing (..)
 
+import Galerie.Scalar exposing (defaultCodecs)
+import Json.Decode as Decode exposing (Decoder)
 
-placeholder : String
-placeholder =
-    ""
+
+type alias Id =
+    Galerie.Scalar.Id
+
+
+type alias Interval =
+    Galerie.Scalar.Interval
+
+
+type alias Name =
+    Galerie.Scalar.Name
+
+
+type alias Timestamptz =
+    Galerie.Scalar.Timestamptz
+
+
+type alias Uuid =
+    Galerie.Scalar.Uuid
+
+
+codecs : Galerie.Scalar.Codecs Id Interval Name Timestamptz Uuid
+codecs =
+    Galerie.Scalar.defineCodecs
+        { codecId = defaultCodecs.codecId
+        , codecInterval = defaultCodecs.codecInterval
+        , codecName = defaultCodecs.codecName
+        , codecTimestamptz = defaultCodecs.codecTimestamptz
+        , codecUuid = defaultCodecs.codecUuid
+        }

@@ -2,9 +2,97 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Galerie.Scalar exposing (..)
+module Galerie.Scalar exposing (Codecs, Id(..), Interval(..), Name(..), Timestamptz(..), Uuid(..), defaultCodecs, defineCodecs, unwrapCodecs, unwrapEncoder)
+
+import Graphql.Codec exposing (Codec)
+import Graphql.Internal.Builder.Object as Object
+import Graphql.Internal.Encode
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 
 
-placeholder : String
-placeholder =
-    ""
+type Id
+    = Id String
+
+
+type Interval
+    = Interval String
+
+
+type Name
+    = Name String
+
+
+type Timestamptz
+    = Timestamptz String
+
+
+type Uuid
+    = Uuid String
+
+
+defineCodecs :
+    { codecId : Codec valueId
+    , codecInterval : Codec valueInterval
+    , codecName : Codec valueName
+    , codecTimestamptz : Codec valueTimestamptz
+    , codecUuid : Codec valueUuid
+    }
+    -> Codecs valueId valueInterval valueName valueTimestamptz valueUuid
+defineCodecs definitions =
+    Codecs definitions
+
+
+unwrapCodecs :
+    Codecs valueId valueInterval valueName valueTimestamptz valueUuid
+    ->
+        { codecId : Codec valueId
+        , codecInterval : Codec valueInterval
+        , codecName : Codec valueName
+        , codecTimestamptz : Codec valueTimestamptz
+        , codecUuid : Codec valueUuid
+        }
+unwrapCodecs (Codecs unwrappedCodecs) =
+    unwrappedCodecs
+
+
+unwrapEncoder getter (Codecs unwrappedCodecs) =
+    (unwrappedCodecs |> getter |> .encoder) >> Graphql.Internal.Encode.fromJson
+
+
+type Codecs valueId valueInterval valueName valueTimestamptz valueUuid
+    = Codecs (RawCodecs valueId valueInterval valueName valueTimestamptz valueUuid)
+
+
+type alias RawCodecs valueId valueInterval valueName valueTimestamptz valueUuid =
+    { codecId : Codec valueId
+    , codecInterval : Codec valueInterval
+    , codecName : Codec valueName
+    , codecTimestamptz : Codec valueTimestamptz
+    , codecUuid : Codec valueUuid
+    }
+
+
+defaultCodecs : RawCodecs Id Interval Name Timestamptz Uuid
+defaultCodecs =
+    { codecId =
+        { encoder = \(Id raw) -> Encode.string raw
+        , decoder = Object.scalarDecoder |> Decode.map Id
+        }
+    , codecInterval =
+        { encoder = \(Interval raw) -> Encode.string raw
+        , decoder = Object.scalarDecoder |> Decode.map Interval
+        }
+    , codecName =
+        { encoder = \(Name raw) -> Encode.string raw
+        , decoder = Object.scalarDecoder |> Decode.map Name
+        }
+    , codecTimestamptz =
+        { encoder = \(Timestamptz raw) -> Encode.string raw
+        , decoder = Object.scalarDecoder |> Decode.map Timestamptz
+        }
+    , codecUuid =
+        { encoder = \(Uuid raw) -> Encode.string raw
+        , decoder = Object.scalarDecoder |> Decode.map Uuid
+        }
+    }

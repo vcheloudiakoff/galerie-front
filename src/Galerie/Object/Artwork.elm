@@ -19,44 +19,36 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
 
 
-artist : SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet (Maybe decodesTo) Galerie.Object.Artwork
+{-| An object relationship
+-}
+artist : SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet decodesTo Galerie.Object.Artwork
 artist object_ =
-    Object.selectionForCompositeField "artist" [] object_ (identity >> Decode.nullable)
+    Object.selectionForCompositeField "artist" [] object_ identity
 
 
-artist_id : SelectionSet (Maybe String) Galerie.Object.Artwork
+artist_id : SelectionSet Galerie.ScalarCodecs.Uuid Galerie.Object.Artwork
 artist_id =
-    Object.selectionForField "(Maybe String)" "artist_id" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "ScalarCodecs.Uuid" "artist_id" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecUuid |> .decoder)
 
 
-created_at : SelectionSet (Maybe String) Galerie.Object.Artwork
+created_at : SelectionSet Galerie.ScalarCodecs.Timestamptz Galerie.Object.Artwork
 created_at =
-    Object.selectionForField "(Maybe String)" "created_at" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "ScalarCodecs.Timestamptz" "created_at" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecTimestamptz |> .decoder)
 
 
-description : SelectionSet (Maybe String) Galerie.Object.Artwork
+description : SelectionSet String Galerie.Object.Artwork
 description =
-    Object.selectionForField "(Maybe String)" "description" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "description" [] Decode.string
 
 
-exhibition_ids : SelectionSet (Maybe (List (Maybe String))) Galerie.Object.Artwork
-exhibition_ids =
-    Object.selectionForField "(Maybe (List (Maybe String)))" "exhibition_ids" [] (Decode.string |> Decode.nullable |> Decode.list |> Decode.nullable)
-
-
-exhibitions : SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (Maybe (List (Maybe decodesTo))) Galerie.Object.Artwork
-exhibitions object_ =
-    Object.selectionForCompositeField "exhibitions" [] object_ (identity >> Decode.nullable >> Decode.list >> Decode.nullable)
-
-
-height : SelectionSet (Maybe Float) Galerie.Object.Artwork
+height : SelectionSet Int Galerie.Object.Artwork
 height =
-    Object.selectionForField "(Maybe Float)" "height" [] (Decode.float |> Decode.nullable)
+    Object.selectionForField "Int" "height" [] Decode.int
 
 
-id : SelectionSet String Galerie.Object.Artwork
+id : SelectionSet Galerie.ScalarCodecs.Uuid Galerie.Object.Artwork
 id =
-    Object.selectionForField "String" "id" [] Decode.string
+    Object.selectionForField "ScalarCodecs.Uuid" "id" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecUuid |> .decoder)
 
 
 image_url : SelectionSet String Galerie.Object.Artwork
@@ -64,26 +56,26 @@ image_url =
     Object.selectionForField "String" "image_url" [] Decode.string
 
 
-support : SelectionSet (Maybe String) Galerie.Object.Artwork
+support : SelectionSet Galerie.ScalarCodecs.Name Galerie.Object.Artwork
 support =
-    Object.selectionForField "(Maybe String)" "support" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "ScalarCodecs.Name" "support" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecName |> .decoder)
 
 
-techniques : SelectionSet (Maybe String) Galerie.Object.Artwork
+techniques : SelectionSet String Galerie.Object.Artwork
 techniques =
-    Object.selectionForField "(Maybe String)" "techniques" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "techniques" [] Decode.string
 
 
-title : SelectionSet String Galerie.Object.Artwork
+title : SelectionSet Galerie.ScalarCodecs.Name Galerie.Object.Artwork
 title =
-    Object.selectionForField "String" "title" [] Decode.string
+    Object.selectionForField "ScalarCodecs.Name" "title" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecName |> .decoder)
 
 
-updated_at : SelectionSet (Maybe String) Galerie.Object.Artwork
+updated_at : SelectionSet Galerie.ScalarCodecs.Timestamptz Galerie.Object.Artwork
 updated_at =
-    Object.selectionForField "(Maybe String)" "updated_at" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "ScalarCodecs.Timestamptz" "updated_at" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecTimestamptz |> .decoder)
 
 
-width : SelectionSet (Maybe Float) Galerie.Object.Artwork
+width : SelectionSet Galerie.ScalarCodecs.Interval Galerie.Object.Artwork
 width =
-    Object.selectionForField "(Maybe Float)" "width" [] (Decode.float |> Decode.nullable)
+    Object.selectionForField "ScalarCodecs.Interval" "width" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecInterval |> .decoder)

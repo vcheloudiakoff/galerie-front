@@ -4,6 +4,7 @@
 
 module Galerie.Object.Artist exposing (..)
 
+import Galerie.Enum.Artwork_select_column
 import Galerie.InputObject
 import Galerie.Interface
 import Galerie.Object
@@ -19,66 +20,93 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
 
 
-artwork_ids : SelectionSet (List String) Galerie.Object.Artist
-artwork_ids =
-    Object.selectionForField "(List String)" "artwork_ids" [] (Decode.string |> Decode.list)
+type alias ArtworksOptionalArguments =
+    { distinct_on : OptionalArgument (List Galerie.Enum.Artwork_select_column.Artwork_select_column)
+    , limit : OptionalArgument Int
+    , offset : OptionalArgument Int
+    , order_by : OptionalArgument (List Galerie.InputObject.Artwork_order_by)
+    , where_ : OptionalArgument Galerie.InputObject.Artwork_bool_exp
+    }
 
 
-artworks : SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (List decodesTo) Galerie.Object.Artist
-artworks object_ =
-    Object.selectionForCompositeField "artworks" [] object_ (identity >> Decode.list)
+{-| An array relationship
+
+  - distinct\_on - distinct select on columns
+  - limit - limit the nuber of rows returned
+  - offset - skip the first n rows. Use only with order\_by
+  - order\_by - sort the rows by one or more columns
+  - where\_ - filter the rows returned
+
+-}
+artworks : (ArtworksOptionalArguments -> ArtworksOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (List decodesTo) Galerie.Object.Artist
+artworks fillInOptionals object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { distinct_on = Absent, limit = Absent, offset = Absent, order_by = Absent, where_ = Absent }
+
+        optionalArgs =
+            [ Argument.optional "distinct_on" filledInOptionals.distinct_on (Encode.enum Galerie.Enum.Artwork_select_column.toString |> Encode.list), Argument.optional "limit" filledInOptionals.limit Encode.int, Argument.optional "offset" filledInOptionals.offset Encode.int, Argument.optional "order_by" filledInOptionals.order_by (Galerie.InputObject.encodeArtwork_order_by |> Encode.list), Argument.optional "where" filledInOptionals.where_ Galerie.InputObject.encodeArtwork_bool_exp ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "artworks" optionalArgs object_ (identity >> Decode.list)
 
 
-created_at : SelectionSet String Galerie.Object.Artist
+type alias ArtworksAggregateOptionalArguments =
+    { distinct_on : OptionalArgument (List Galerie.Enum.Artwork_select_column.Artwork_select_column)
+    , limit : OptionalArgument Int
+    , offset : OptionalArgument Int
+    , order_by : OptionalArgument (List Galerie.InputObject.Artwork_order_by)
+    , where_ : OptionalArgument Galerie.InputObject.Artwork_bool_exp
+    }
+
+
+{-| An aggregated array relationship
+
+  - distinct\_on - distinct select on columns
+  - limit - limit the nuber of rows returned
+  - offset - skip the first n rows. Use only with order\_by
+  - order\_by - sort the rows by one or more columns
+  - where\_ - filter the rows returned
+
+-}
+artworks_aggregate : (ArtworksAggregateOptionalArguments -> ArtworksAggregateOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artwork_aggregate -> SelectionSet decodesTo Galerie.Object.Artist
+artworks_aggregate fillInOptionals object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { distinct_on = Absent, limit = Absent, offset = Absent, order_by = Absent, where_ = Absent }
+
+        optionalArgs =
+            [ Argument.optional "distinct_on" filledInOptionals.distinct_on (Encode.enum Galerie.Enum.Artwork_select_column.toString |> Encode.list), Argument.optional "limit" filledInOptionals.limit Encode.int, Argument.optional "offset" filledInOptionals.offset Encode.int, Argument.optional "order_by" filledInOptionals.order_by (Galerie.InputObject.encodeArtwork_order_by |> Encode.list), Argument.optional "where" filledInOptionals.where_ Galerie.InputObject.encodeArtwork_bool_exp ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "artworks_aggregate" optionalArgs object_ identity
+
+
+created_at : SelectionSet Galerie.ScalarCodecs.Timestamptz Galerie.Object.Artist
 created_at =
-    Object.selectionForField "String" "created_at" [] Decode.string
+    Object.selectionForField "ScalarCodecs.Timestamptz" "created_at" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecTimestamptz |> .decoder)
 
 
-description : SelectionSet String Galerie.Object.Artist
-description =
-    Object.selectionForField "String" "description" [] Decode.string
-
-
-exhibition_ids : SelectionSet (List String) Galerie.Object.Artist
-exhibition_ids =
-    Object.selectionForField "(List String)" "exhibition_ids" [] (Decode.string |> Decode.list)
-
-
-exhibitions : SelectionSet decodesTo Galerie.Object.Exhibition -> SelectionSet (List decodesTo) Galerie.Object.Artist
-exhibitions object_ =
-    Object.selectionForCompositeField "exhibitions" [] object_ (identity >> Decode.list)
-
-
-first_name : SelectionSet String Galerie.Object.Artist
+first_name : SelectionSet Galerie.ScalarCodecs.Name Galerie.Object.Artist
 first_name =
-    Object.selectionForField "String" "first_name" [] Decode.string
+    Object.selectionForField "ScalarCodecs.Name" "first_name" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecName |> .decoder)
 
 
-id : SelectionSet String Galerie.Object.Artist
+id : SelectionSet Galerie.ScalarCodecs.Uuid Galerie.Object.Artist
 id =
-    Object.selectionForField "String" "id" [] Decode.string
+    Object.selectionForField "ScalarCodecs.Uuid" "id" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecUuid |> .decoder)
 
 
-last_name : SelectionSet String Galerie.Object.Artist
+last_name : SelectionSet Galerie.ScalarCodecs.Name Galerie.Object.Artist
 last_name =
-    Object.selectionForField "String" "last_name" [] Decode.string
+    Object.selectionForField "ScalarCodecs.Name" "last_name" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecName |> .decoder)
 
 
-nickname : SelectionSet String Galerie.Object.Artist
+nickname : SelectionSet Galerie.ScalarCodecs.Name Galerie.Object.Artist
 nickname =
-    Object.selectionForField "String" "nickname" [] Decode.string
+    Object.selectionForField "ScalarCodecs.Name" "nickname" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecName |> .decoder)
 
 
-preview_artwork : SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (Maybe decodesTo) Galerie.Object.Artist
-preview_artwork object_ =
-    Object.selectionForCompositeField "preview_artwork" [] object_ (identity >> Decode.nullable)
-
-
-preview_artwork_id : SelectionSet (Maybe String) Galerie.Object.Artist
-preview_artwork_id =
-    Object.selectionForField "(Maybe String)" "preview_artwork_id" [] (Decode.string |> Decode.nullable)
-
-
-updated_at : SelectionSet String Galerie.Object.Artist
+updated_at : SelectionSet Galerie.ScalarCodecs.Timestamptz Galerie.Object.Artist
 updated_at =
-    Object.selectionForField "String" "updated_at" [] Decode.string
+    Object.selectionForField "ScalarCodecs.Timestamptz" "updated_at" [] (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapCodecs |> .codecTimestamptz |> .decoder)

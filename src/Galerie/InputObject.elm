@@ -4,6 +4,11 @@
 
 module Galerie.InputObject exposing (..)
 
+import Galerie.Enum.Artist_constraint
+import Galerie.Enum.Artist_update_column
+import Galerie.Enum.Artwork_constraint
+import Galerie.Enum.Artwork_update_column
+import Galerie.Enum.Order_by
 import Galerie.Interface
 import Galerie.Object
 import Galerie.Scalar
@@ -17,240 +22,1424 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
 
 
-buildArtistInputType : ArtistInputTypeRequiredFields -> (ArtistInputTypeOptionalFields -> ArtistInputTypeOptionalFields) -> ArtistInputType
-buildArtistInputType required fillOptionals =
+buildArtist_aggregate_order_by : (Artist_aggregate_order_byOptionalFields -> Artist_aggregate_order_byOptionalFields) -> Artist_aggregate_order_by
+buildArtist_aggregate_order_by fillOptionals =
     let
         optionals =
             fillOptionals
-                { preview_artwork_id = Absent }
+                { count = Absent, max = Absent, min = Absent }
     in
-    { exhibition_ids = required.exhibition_ids, artwork_ids = required.artwork_ids, first_name = required.first_name, last_name = required.last_name, nickname = required.nickname, description = required.description, preview_artwork_id = optionals.preview_artwork_id }
+    { count = optionals.count, max = optionals.max, min = optionals.min }
 
 
-type alias ArtistInputTypeRequiredFields =
-    { exhibition_ids : List String
-    , artwork_ids : List String
-    , first_name : String
-    , last_name : String
-    , nickname : String
-    , description : String
+type alias Artist_aggregate_order_byOptionalFields =
+    { count : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , max : OptionalArgument Artist_max_order_by
+    , min : OptionalArgument Artist_min_order_by
     }
 
 
-type alias ArtistInputTypeOptionalFields =
-    { preview_artwork_id : OptionalArgument String }
-
-
-{-| Type for the ArtistInputType input object.
+{-| Type for the Artist\_aggregate\_order\_by input object.
 -}
-type alias ArtistInputType =
-    { exhibition_ids : List String
-    , artwork_ids : List String
-    , first_name : String
-    , last_name : String
-    , nickname : String
-    , description : String
-    , preview_artwork_id : OptionalArgument String
+type alias Artist_aggregate_order_by =
+    { count : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , max : OptionalArgument Artist_max_order_by
+    , min : OptionalArgument Artist_min_order_by
     }
 
 
-{-| Encode a ArtistInputType into a value that can be used as an argument.
+{-| Encode a Artist\_aggregate\_order\_by into a value that can be used as an argument.
 -}
-encodeArtistInputType : ArtistInputType -> Value
-encodeArtistInputType input =
+encodeArtist_aggregate_order_by : Artist_aggregate_order_by -> Value
+encodeArtist_aggregate_order_by input =
     Encode.maybeObject
-        [ ( "exhibition_ids", (Encode.string |> Encode.list) input.exhibition_ids |> Just ), ( "artwork_ids", (Encode.string |> Encode.list) input.artwork_ids |> Just ), ( "first_name", Encode.string input.first_name |> Just ), ( "last_name", Encode.string input.last_name |> Just ), ( "nickname", Encode.string input.nickname |> Just ), ( "description", Encode.string input.description |> Just ), ( "preview_artwork_id", Encode.string |> Encode.optional input.preview_artwork_id ) ]
+        [ ( "count", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.count ), ( "max", encodeArtist_max_order_by |> Encode.optional input.max ), ( "min", encodeArtist_min_order_by |> Encode.optional input.min ) ]
 
 
-buildArtworkInputType : ArtworkInputTypeRequiredFields -> (ArtworkInputTypeOptionalFields -> ArtworkInputTypeOptionalFields) -> ArtworkInputType
-buildArtworkInputType required fillOptionals =
+buildArtist_arr_rel_insert_input : Artist_arr_rel_insert_inputRequiredFields -> (Artist_arr_rel_insert_inputOptionalFields -> Artist_arr_rel_insert_inputOptionalFields) -> Artist_arr_rel_insert_input
+buildArtist_arr_rel_insert_input required fillOptionals =
     let
         optionals =
             fillOptionals
-                { exhibition_ids = Absent, description = Absent, techniques = Absent, support = Absent, height = Absent, width = Absent, artist_id = Absent }
+                { on_conflict = Absent }
     in
-    { exhibition_ids = optionals.exhibition_ids, image_url = required.image_url, title = required.title, description = optionals.description, techniques = optionals.techniques, support = optionals.support, height = optionals.height, width = optionals.width, artist_id = optionals.artist_id }
+    Artist_arr_rel_insert_input { data = required.data, on_conflict = optionals.on_conflict }
 
 
-type alias ArtworkInputTypeRequiredFields =
-    { image_url : String
-    , title : String
+type alias Artist_arr_rel_insert_inputRequiredFields =
+    { data : List Artist_insert_input }
+
+
+type alias Artist_arr_rel_insert_inputOptionalFields =
+    { on_conflict : OptionalArgument Artist_on_conflict }
+
+
+{-| Type alias for the `Artist_arr_rel_insert_input` attributes. Note that this type
+needs to use the `Artist_arr_rel_insert_input` type (not just a plain type alias) because it has
+references to itself either directly (recursive) or indirectly (circular). See
+<https://github.com/dillonkearns/elm-graphql/issues/33>.
+-}
+type alias Artist_arr_rel_insert_inputRaw =
+    { data : List Artist_insert_input
+    , on_conflict : OptionalArgument Artist_on_conflict
     }
 
 
-type alias ArtworkInputTypeOptionalFields =
-    { exhibition_ids : OptionalArgument (List (Maybe String))
+{-| Type for the Artist\_arr\_rel\_insert\_input input object.
+-}
+type Artist_arr_rel_insert_input
+    = Artist_arr_rel_insert_input Artist_arr_rel_insert_inputRaw
+
+
+{-| Encode a Artist\_arr\_rel\_insert\_input into a value that can be used as an argument.
+-}
+encodeArtist_arr_rel_insert_input : Artist_arr_rel_insert_input -> Value
+encodeArtist_arr_rel_insert_input (Artist_arr_rel_insert_input input) =
+    Encode.maybeObject
+        [ ( "data", (encodeArtist_insert_input |> Encode.list) input.data |> Just ), ( "on_conflict", encodeArtist_on_conflict |> Encode.optional input.on_conflict ) ]
+
+
+buildArtist_bool_exp : (Artist_bool_expOptionalFields -> Artist_bool_expOptionalFields) -> Artist_bool_exp
+buildArtist_bool_exp fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { and_ = Absent, not_ = Absent, or_ = Absent, artworks = Absent, created_at = Absent, first_name = Absent, id = Absent, last_name = Absent, nickname = Absent, updated_at = Absent }
+    in
+    Artist_bool_exp { and_ = optionals.and_, not_ = optionals.not_, or_ = optionals.or_, artworks = optionals.artworks, created_at = optionals.created_at, first_name = optionals.first_name, id = optionals.id, last_name = optionals.last_name, nickname = optionals.nickname, updated_at = optionals.updated_at }
+
+
+type alias Artist_bool_expOptionalFields =
+    { and_ : OptionalArgument (List (Maybe Artist_bool_exp))
+    , not_ : OptionalArgument Artist_bool_exp
+    , or_ : OptionalArgument (List (Maybe Artist_bool_exp))
+    , artworks : OptionalArgument Artwork_bool_exp
+    , created_at : OptionalArgument Timestamptz_comparison_exp
+    , first_name : OptionalArgument Name_comparison_exp
+    , id : OptionalArgument Uuid_comparison_exp
+    , last_name : OptionalArgument Name_comparison_exp
+    , nickname : OptionalArgument Name_comparison_exp
+    , updated_at : OptionalArgument Timestamptz_comparison_exp
+    }
+
+
+{-| Type alias for the `Artist_bool_exp` attributes. Note that this type
+needs to use the `Artist_bool_exp` type (not just a plain type alias) because it has
+references to itself either directly (recursive) or indirectly (circular). See
+<https://github.com/dillonkearns/elm-graphql/issues/33>.
+-}
+type alias Artist_bool_expRaw =
+    { and_ : OptionalArgument (List (Maybe Artist_bool_exp))
+    , not_ : OptionalArgument Artist_bool_exp
+    , or_ : OptionalArgument (List (Maybe Artist_bool_exp))
+    , artworks : OptionalArgument Artwork_bool_exp
+    , created_at : OptionalArgument Timestamptz_comparison_exp
+    , first_name : OptionalArgument Name_comparison_exp
+    , id : OptionalArgument Uuid_comparison_exp
+    , last_name : OptionalArgument Name_comparison_exp
+    , nickname : OptionalArgument Name_comparison_exp
+    , updated_at : OptionalArgument Timestamptz_comparison_exp
+    }
+
+
+{-| Type for the Artist\_bool\_exp input object.
+-}
+type Artist_bool_exp
+    = Artist_bool_exp Artist_bool_expRaw
+
+
+{-| Encode a Artist\_bool\_exp into a value that can be used as an argument.
+-}
+encodeArtist_bool_exp : Artist_bool_exp -> Value
+encodeArtist_bool_exp (Artist_bool_exp input) =
+    Encode.maybeObject
+        [ ( "_and", (encodeArtist_bool_exp |> Encode.maybe |> Encode.list) |> Encode.optional input.and_ ), ( "_not", encodeArtist_bool_exp |> Encode.optional input.not_ ), ( "_or", (encodeArtist_bool_exp |> Encode.maybe |> Encode.list) |> Encode.optional input.or_ ), ( "artworks", encodeArtwork_bool_exp |> Encode.optional input.artworks ), ( "created_at", encodeTimestamptz_comparison_exp |> Encode.optional input.created_at ), ( "first_name", encodeName_comparison_exp |> Encode.optional input.first_name ), ( "id", encodeUuid_comparison_exp |> Encode.optional input.id ), ( "last_name", encodeName_comparison_exp |> Encode.optional input.last_name ), ( "nickname", encodeName_comparison_exp |> Encode.optional input.nickname ), ( "updated_at", encodeTimestamptz_comparison_exp |> Encode.optional input.updated_at ) ]
+
+
+buildArtist_insert_input : (Artist_insert_inputOptionalFields -> Artist_insert_inputOptionalFields) -> Artist_insert_input
+buildArtist_insert_input fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { artworks = Absent, created_at = Absent, first_name = Absent, id = Absent, last_name = Absent, nickname = Absent, updated_at = Absent }
+    in
+    Artist_insert_input { artworks = optionals.artworks, created_at = optionals.created_at, first_name = optionals.first_name, id = optionals.id, last_name = optionals.last_name, nickname = optionals.nickname, updated_at = optionals.updated_at }
+
+
+type alias Artist_insert_inputOptionalFields =
+    { artworks : OptionalArgument Artwork_arr_rel_insert_input
+    , created_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , first_name : OptionalArgument Galerie.ScalarCodecs.Name
+    , id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , last_name : OptionalArgument Galerie.ScalarCodecs.Name
+    , nickname : OptionalArgument Galerie.ScalarCodecs.Name
+    , updated_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    }
+
+
+{-| Type alias for the `Artist_insert_input` attributes. Note that this type
+needs to use the `Artist_insert_input` type (not just a plain type alias) because it has
+references to itself either directly (recursive) or indirectly (circular). See
+<https://github.com/dillonkearns/elm-graphql/issues/33>.
+-}
+type alias Artist_insert_inputRaw =
+    { artworks : OptionalArgument Artwork_arr_rel_insert_input
+    , created_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , first_name : OptionalArgument Galerie.ScalarCodecs.Name
+    , id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , last_name : OptionalArgument Galerie.ScalarCodecs.Name
+    , nickname : OptionalArgument Galerie.ScalarCodecs.Name
+    , updated_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    }
+
+
+{-| Type for the Artist\_insert\_input input object.
+-}
+type Artist_insert_input
+    = Artist_insert_input Artist_insert_inputRaw
+
+
+{-| Encode a Artist\_insert\_input into a value that can be used as an argument.
+-}
+encodeArtist_insert_input : Artist_insert_input -> Value
+encodeArtist_insert_input (Artist_insert_input input) =
+    Encode.maybeObject
+        [ ( "artworks", encodeArtwork_arr_rel_insert_input |> Encode.optional input.artworks ), ( "created_at", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.created_at ), ( "first_name", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.first_name ), ( "id", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.id ), ( "last_name", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.last_name ), ( "nickname", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.nickname ), ( "updated_at", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.updated_at ) ]
+
+
+buildArtist_max_order_by : (Artist_max_order_byOptionalFields -> Artist_max_order_byOptionalFields) -> Artist_max_order_by
+buildArtist_max_order_by fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { created_at = Absent, updated_at = Absent }
+    in
+    { created_at = optionals.created_at, updated_at = optionals.updated_at }
+
+
+type alias Artist_max_order_byOptionalFields =
+    { created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Type for the Artist\_max\_order\_by input object.
+-}
+type alias Artist_max_order_by =
+    { created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Encode a Artist\_max\_order\_by into a value that can be used as an argument.
+-}
+encodeArtist_max_order_by : Artist_max_order_by -> Value
+encodeArtist_max_order_by input =
+    Encode.maybeObject
+        [ ( "created_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.created_at ), ( "updated_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.updated_at ) ]
+
+
+buildArtist_min_order_by : (Artist_min_order_byOptionalFields -> Artist_min_order_byOptionalFields) -> Artist_min_order_by
+buildArtist_min_order_by fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { created_at = Absent, updated_at = Absent }
+    in
+    { created_at = optionals.created_at, updated_at = optionals.updated_at }
+
+
+type alias Artist_min_order_byOptionalFields =
+    { created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Type for the Artist\_min\_order\_by input object.
+-}
+type alias Artist_min_order_by =
+    { created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Encode a Artist\_min\_order\_by into a value that can be used as an argument.
+-}
+encodeArtist_min_order_by : Artist_min_order_by -> Value
+encodeArtist_min_order_by input =
+    Encode.maybeObject
+        [ ( "created_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.created_at ), ( "updated_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.updated_at ) ]
+
+
+buildArtist_obj_rel_insert_input : Artist_obj_rel_insert_inputRequiredFields -> (Artist_obj_rel_insert_inputOptionalFields -> Artist_obj_rel_insert_inputOptionalFields) -> Artist_obj_rel_insert_input
+buildArtist_obj_rel_insert_input required fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { on_conflict = Absent }
+    in
+    Artist_obj_rel_insert_input { data = required.data, on_conflict = optionals.on_conflict }
+
+
+type alias Artist_obj_rel_insert_inputRequiredFields =
+    { data : Artist_insert_input }
+
+
+type alias Artist_obj_rel_insert_inputOptionalFields =
+    { on_conflict : OptionalArgument Artist_on_conflict }
+
+
+{-| Type alias for the `Artist_obj_rel_insert_input` attributes. Note that this type
+needs to use the `Artist_obj_rel_insert_input` type (not just a plain type alias) because it has
+references to itself either directly (recursive) or indirectly (circular). See
+<https://github.com/dillonkearns/elm-graphql/issues/33>.
+-}
+type alias Artist_obj_rel_insert_inputRaw =
+    { data : Artist_insert_input
+    , on_conflict : OptionalArgument Artist_on_conflict
+    }
+
+
+{-| Type for the Artist\_obj\_rel\_insert\_input input object.
+-}
+type Artist_obj_rel_insert_input
+    = Artist_obj_rel_insert_input Artist_obj_rel_insert_inputRaw
+
+
+{-| Encode a Artist\_obj\_rel\_insert\_input into a value that can be used as an argument.
+-}
+encodeArtist_obj_rel_insert_input : Artist_obj_rel_insert_input -> Value
+encodeArtist_obj_rel_insert_input (Artist_obj_rel_insert_input input) =
+    Encode.maybeObject
+        [ ( "data", encodeArtist_insert_input input.data |> Just ), ( "on_conflict", encodeArtist_on_conflict |> Encode.optional input.on_conflict ) ]
+
+
+buildArtist_on_conflict : Artist_on_conflictRequiredFields -> Artist_on_conflict
+buildArtist_on_conflict required =
+    { constraint = required.constraint, update_columns = required.update_columns }
+
+
+type alias Artist_on_conflictRequiredFields =
+    { constraint : Galerie.Enum.Artist_constraint.Artist_constraint
+    , update_columns : List Galerie.Enum.Artist_update_column.Artist_update_column
+    }
+
+
+{-| Type for the Artist\_on\_conflict input object.
+-}
+type alias Artist_on_conflict =
+    { constraint : Galerie.Enum.Artist_constraint.Artist_constraint
+    , update_columns : List Galerie.Enum.Artist_update_column.Artist_update_column
+    }
+
+
+{-| Encode a Artist\_on\_conflict into a value that can be used as an argument.
+-}
+encodeArtist_on_conflict : Artist_on_conflict -> Value
+encodeArtist_on_conflict input =
+    Encode.maybeObject
+        [ ( "constraint", Encode.enum Galerie.Enum.Artist_constraint.toString input.constraint |> Just ), ( "update_columns", (Encode.enum Galerie.Enum.Artist_update_column.toString |> Encode.list) input.update_columns |> Just ) ]
+
+
+buildArtist_order_by : (Artist_order_byOptionalFields -> Artist_order_byOptionalFields) -> Artist_order_by
+buildArtist_order_by fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { artworks_aggregate = Absent, created_at = Absent, first_name = Absent, id = Absent, last_name = Absent, nickname = Absent, updated_at = Absent }
+    in
+    { artworks_aggregate = optionals.artworks_aggregate, created_at = optionals.created_at, first_name = optionals.first_name, id = optionals.id, last_name = optionals.last_name, nickname = optionals.nickname, updated_at = optionals.updated_at }
+
+
+type alias Artist_order_byOptionalFields =
+    { artworks_aggregate : OptionalArgument Artwork_aggregate_order_by
+    , created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , first_name : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , id : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , last_name : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , nickname : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Type for the Artist\_order\_by input object.
+-}
+type alias Artist_order_by =
+    { artworks_aggregate : OptionalArgument Artwork_aggregate_order_by
+    , created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , first_name : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , id : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , last_name : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , nickname : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Encode a Artist\_order\_by into a value that can be used as an argument.
+-}
+encodeArtist_order_by : Artist_order_by -> Value
+encodeArtist_order_by input =
+    Encode.maybeObject
+        [ ( "artworks_aggregate", encodeArtwork_aggregate_order_by |> Encode.optional input.artworks_aggregate ), ( "created_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.created_at ), ( "first_name", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.first_name ), ( "id", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.id ), ( "last_name", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.last_name ), ( "nickname", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.nickname ), ( "updated_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.updated_at ) ]
+
+
+buildArtist_set_input : (Artist_set_inputOptionalFields -> Artist_set_inputOptionalFields) -> Artist_set_input
+buildArtist_set_input fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { created_at = Absent, first_name = Absent, id = Absent, last_name = Absent, nickname = Absent, updated_at = Absent }
+    in
+    { created_at = optionals.created_at, first_name = optionals.first_name, id = optionals.id, last_name = optionals.last_name, nickname = optionals.nickname, updated_at = optionals.updated_at }
+
+
+type alias Artist_set_inputOptionalFields =
+    { created_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , first_name : OptionalArgument Galerie.ScalarCodecs.Name
+    , id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , last_name : OptionalArgument Galerie.ScalarCodecs.Name
+    , nickname : OptionalArgument Galerie.ScalarCodecs.Name
+    , updated_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    }
+
+
+{-| Type for the Artist\_set\_input input object.
+-}
+type alias Artist_set_input =
+    { created_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , first_name : OptionalArgument Galerie.ScalarCodecs.Name
+    , id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , last_name : OptionalArgument Galerie.ScalarCodecs.Name
+    , nickname : OptionalArgument Galerie.ScalarCodecs.Name
+    , updated_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    }
+
+
+{-| Encode a Artist\_set\_input into a value that can be used as an argument.
+-}
+encodeArtist_set_input : Artist_set_input -> Value
+encodeArtist_set_input input =
+    Encode.maybeObject
+        [ ( "created_at", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.created_at ), ( "first_name", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.first_name ), ( "id", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.id ), ( "last_name", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.last_name ), ( "nickname", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.nickname ), ( "updated_at", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.updated_at ) ]
+
+
+buildArtwork_aggregate_order_by : (Artwork_aggregate_order_byOptionalFields -> Artwork_aggregate_order_byOptionalFields) -> Artwork_aggregate_order_by
+buildArtwork_aggregate_order_by fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { avg = Absent, count = Absent, max = Absent, min = Absent, stddev = Absent, stddev_pop = Absent, stddev_samp = Absent, sum = Absent, var_pop = Absent, var_samp = Absent, variance = Absent }
+    in
+    { avg = optionals.avg, count = optionals.count, max = optionals.max, min = optionals.min, stddev = optionals.stddev, stddev_pop = optionals.stddev_pop, stddev_samp = optionals.stddev_samp, sum = optionals.sum, var_pop = optionals.var_pop, var_samp = optionals.var_samp, variance = optionals.variance }
+
+
+type alias Artwork_aggregate_order_byOptionalFields =
+    { avg : OptionalArgument Artwork_avg_order_by
+    , count : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , max : OptionalArgument Artwork_max_order_by
+    , min : OptionalArgument Artwork_min_order_by
+    , stddev : OptionalArgument Artwork_stddev_order_by
+    , stddev_pop : OptionalArgument Artwork_stddev_pop_order_by
+    , stddev_samp : OptionalArgument Artwork_stddev_samp_order_by
+    , sum : OptionalArgument Artwork_sum_order_by
+    , var_pop : OptionalArgument Artwork_var_pop_order_by
+    , var_samp : OptionalArgument Artwork_var_samp_order_by
+    , variance : OptionalArgument Artwork_variance_order_by
+    }
+
+
+{-| Type for the Artwork\_aggregate\_order\_by input object.
+-}
+type alias Artwork_aggregate_order_by =
+    { avg : OptionalArgument Artwork_avg_order_by
+    , count : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , max : OptionalArgument Artwork_max_order_by
+    , min : OptionalArgument Artwork_min_order_by
+    , stddev : OptionalArgument Artwork_stddev_order_by
+    , stddev_pop : OptionalArgument Artwork_stddev_pop_order_by
+    , stddev_samp : OptionalArgument Artwork_stddev_samp_order_by
+    , sum : OptionalArgument Artwork_sum_order_by
+    , var_pop : OptionalArgument Artwork_var_pop_order_by
+    , var_samp : OptionalArgument Artwork_var_samp_order_by
+    , variance : OptionalArgument Artwork_variance_order_by
+    }
+
+
+{-| Encode a Artwork\_aggregate\_order\_by into a value that can be used as an argument.
+-}
+encodeArtwork_aggregate_order_by : Artwork_aggregate_order_by -> Value
+encodeArtwork_aggregate_order_by input =
+    Encode.maybeObject
+        [ ( "avg", encodeArtwork_avg_order_by |> Encode.optional input.avg ), ( "count", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.count ), ( "max", encodeArtwork_max_order_by |> Encode.optional input.max ), ( "min", encodeArtwork_min_order_by |> Encode.optional input.min ), ( "stddev", encodeArtwork_stddev_order_by |> Encode.optional input.stddev ), ( "stddev_pop", encodeArtwork_stddev_pop_order_by |> Encode.optional input.stddev_pop ), ( "stddev_samp", encodeArtwork_stddev_samp_order_by |> Encode.optional input.stddev_samp ), ( "sum", encodeArtwork_sum_order_by |> Encode.optional input.sum ), ( "var_pop", encodeArtwork_var_pop_order_by |> Encode.optional input.var_pop ), ( "var_samp", encodeArtwork_var_samp_order_by |> Encode.optional input.var_samp ), ( "variance", encodeArtwork_variance_order_by |> Encode.optional input.variance ) ]
+
+
+buildArtwork_arr_rel_insert_input : Artwork_arr_rel_insert_inputRequiredFields -> (Artwork_arr_rel_insert_inputOptionalFields -> Artwork_arr_rel_insert_inputOptionalFields) -> Artwork_arr_rel_insert_input
+buildArtwork_arr_rel_insert_input required fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { on_conflict = Absent }
+    in
+    Artwork_arr_rel_insert_input { data = required.data, on_conflict = optionals.on_conflict }
+
+
+type alias Artwork_arr_rel_insert_inputRequiredFields =
+    { data : List Artwork_insert_input }
+
+
+type alias Artwork_arr_rel_insert_inputOptionalFields =
+    { on_conflict : OptionalArgument Artwork_on_conflict }
+
+
+{-| Type alias for the `Artwork_arr_rel_insert_input` attributes. Note that this type
+needs to use the `Artwork_arr_rel_insert_input` type (not just a plain type alias) because it has
+references to itself either directly (recursive) or indirectly (circular). See
+<https://github.com/dillonkearns/elm-graphql/issues/33>.
+-}
+type alias Artwork_arr_rel_insert_inputRaw =
+    { data : List Artwork_insert_input
+    , on_conflict : OptionalArgument Artwork_on_conflict
+    }
+
+
+{-| Type for the Artwork\_arr\_rel\_insert\_input input object.
+-}
+type Artwork_arr_rel_insert_input
+    = Artwork_arr_rel_insert_input Artwork_arr_rel_insert_inputRaw
+
+
+{-| Encode a Artwork\_arr\_rel\_insert\_input into a value that can be used as an argument.
+-}
+encodeArtwork_arr_rel_insert_input : Artwork_arr_rel_insert_input -> Value
+encodeArtwork_arr_rel_insert_input (Artwork_arr_rel_insert_input input) =
+    Encode.maybeObject
+        [ ( "data", (encodeArtwork_insert_input |> Encode.list) input.data |> Just ), ( "on_conflict", encodeArtwork_on_conflict |> Encode.optional input.on_conflict ) ]
+
+
+buildArtwork_avg_order_by : (Artwork_avg_order_byOptionalFields -> Artwork_avg_order_byOptionalFields) -> Artwork_avg_order_by
+buildArtwork_avg_order_by fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { height = Absent }
+    in
+    { height = optionals.height }
+
+
+type alias Artwork_avg_order_byOptionalFields =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
+
+
+{-| Type for the Artwork\_avg\_order\_by input object.
+-}
+type alias Artwork_avg_order_by =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
+
+
+{-| Encode a Artwork\_avg\_order\_by into a value that can be used as an argument.
+-}
+encodeArtwork_avg_order_by : Artwork_avg_order_by -> Value
+encodeArtwork_avg_order_by input =
+    Encode.maybeObject
+        [ ( "height", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.height ) ]
+
+
+buildArtwork_bool_exp : (Artwork_bool_expOptionalFields -> Artwork_bool_expOptionalFields) -> Artwork_bool_exp
+buildArtwork_bool_exp fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { and_ = Absent, not_ = Absent, or_ = Absent, artist = Absent, artist_id = Absent, created_at = Absent, description = Absent, height = Absent, id = Absent, image_url = Absent, support = Absent, techniques = Absent, title = Absent, updated_at = Absent, width = Absent }
+    in
+    Artwork_bool_exp { and_ = optionals.and_, not_ = optionals.not_, or_ = optionals.or_, artist = optionals.artist, artist_id = optionals.artist_id, created_at = optionals.created_at, description = optionals.description, height = optionals.height, id = optionals.id, image_url = optionals.image_url, support = optionals.support, techniques = optionals.techniques, title = optionals.title, updated_at = optionals.updated_at, width = optionals.width }
+
+
+type alias Artwork_bool_expOptionalFields =
+    { and_ : OptionalArgument (List (Maybe Artwork_bool_exp))
+    , not_ : OptionalArgument Artwork_bool_exp
+    , or_ : OptionalArgument (List (Maybe Artwork_bool_exp))
+    , artist : OptionalArgument Artist_bool_exp
+    , artist_id : OptionalArgument Uuid_comparison_exp
+    , created_at : OptionalArgument Timestamptz_comparison_exp
+    , description : OptionalArgument String_comparison_exp
+    , height : OptionalArgument Int_comparison_exp
+    , id : OptionalArgument Uuid_comparison_exp
+    , image_url : OptionalArgument String_comparison_exp
+    , support : OptionalArgument Name_comparison_exp
+    , techniques : OptionalArgument String_comparison_exp
+    , title : OptionalArgument Name_comparison_exp
+    , updated_at : OptionalArgument Timestamptz_comparison_exp
+    , width : OptionalArgument Interval_comparison_exp
+    }
+
+
+{-| Type alias for the `Artwork_bool_exp` attributes. Note that this type
+needs to use the `Artwork_bool_exp` type (not just a plain type alias) because it has
+references to itself either directly (recursive) or indirectly (circular). See
+<https://github.com/dillonkearns/elm-graphql/issues/33>.
+-}
+type alias Artwork_bool_expRaw =
+    { and_ : OptionalArgument (List (Maybe Artwork_bool_exp))
+    , not_ : OptionalArgument Artwork_bool_exp
+    , or_ : OptionalArgument (List (Maybe Artwork_bool_exp))
+    , artist : OptionalArgument Artist_bool_exp
+    , artist_id : OptionalArgument Uuid_comparison_exp
+    , created_at : OptionalArgument Timestamptz_comparison_exp
+    , description : OptionalArgument String_comparison_exp
+    , height : OptionalArgument Int_comparison_exp
+    , id : OptionalArgument Uuid_comparison_exp
+    , image_url : OptionalArgument String_comparison_exp
+    , support : OptionalArgument Name_comparison_exp
+    , techniques : OptionalArgument String_comparison_exp
+    , title : OptionalArgument Name_comparison_exp
+    , updated_at : OptionalArgument Timestamptz_comparison_exp
+    , width : OptionalArgument Interval_comparison_exp
+    }
+
+
+{-| Type for the Artwork\_bool\_exp input object.
+-}
+type Artwork_bool_exp
+    = Artwork_bool_exp Artwork_bool_expRaw
+
+
+{-| Encode a Artwork\_bool\_exp into a value that can be used as an argument.
+-}
+encodeArtwork_bool_exp : Artwork_bool_exp -> Value
+encodeArtwork_bool_exp (Artwork_bool_exp input) =
+    Encode.maybeObject
+        [ ( "_and", (encodeArtwork_bool_exp |> Encode.maybe |> Encode.list) |> Encode.optional input.and_ ), ( "_not", encodeArtwork_bool_exp |> Encode.optional input.not_ ), ( "_or", (encodeArtwork_bool_exp |> Encode.maybe |> Encode.list) |> Encode.optional input.or_ ), ( "artist", encodeArtist_bool_exp |> Encode.optional input.artist ), ( "artist_id", encodeUuid_comparison_exp |> Encode.optional input.artist_id ), ( "created_at", encodeTimestamptz_comparison_exp |> Encode.optional input.created_at ), ( "description", encodeString_comparison_exp |> Encode.optional input.description ), ( "height", encodeInt_comparison_exp |> Encode.optional input.height ), ( "id", encodeUuid_comparison_exp |> Encode.optional input.id ), ( "image_url", encodeString_comparison_exp |> Encode.optional input.image_url ), ( "support", encodeName_comparison_exp |> Encode.optional input.support ), ( "techniques", encodeString_comparison_exp |> Encode.optional input.techniques ), ( "title", encodeName_comparison_exp |> Encode.optional input.title ), ( "updated_at", encodeTimestamptz_comparison_exp |> Encode.optional input.updated_at ), ( "width", encodeInterval_comparison_exp |> Encode.optional input.width ) ]
+
+
+buildArtwork_inc_input : (Artwork_inc_inputOptionalFields -> Artwork_inc_inputOptionalFields) -> Artwork_inc_input
+buildArtwork_inc_input fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { height = Absent }
+    in
+    { height = optionals.height }
+
+
+type alias Artwork_inc_inputOptionalFields =
+    { height : OptionalArgument Int }
+
+
+{-| Type for the Artwork\_inc\_input input object.
+-}
+type alias Artwork_inc_input =
+    { height : OptionalArgument Int }
+
+
+{-| Encode a Artwork\_inc\_input into a value that can be used as an argument.
+-}
+encodeArtwork_inc_input : Artwork_inc_input -> Value
+encodeArtwork_inc_input input =
+    Encode.maybeObject
+        [ ( "height", Encode.int |> Encode.optional input.height ) ]
+
+
+buildArtwork_insert_input : (Artwork_insert_inputOptionalFields -> Artwork_insert_inputOptionalFields) -> Artwork_insert_input
+buildArtwork_insert_input fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { artist = Absent, artist_id = Absent, created_at = Absent, description = Absent, height = Absent, id = Absent, image_url = Absent, support = Absent, techniques = Absent, title = Absent, updated_at = Absent, width = Absent }
+    in
+    Artwork_insert_input { artist = optionals.artist, artist_id = optionals.artist_id, created_at = optionals.created_at, description = optionals.description, height = optionals.height, id = optionals.id, image_url = optionals.image_url, support = optionals.support, techniques = optionals.techniques, title = optionals.title, updated_at = optionals.updated_at, width = optionals.width }
+
+
+type alias Artwork_insert_inputOptionalFields =
+    { artist : OptionalArgument Artist_obj_rel_insert_input
+    , artist_id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , created_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
     , description : OptionalArgument String
+    , height : OptionalArgument Int
+    , id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , image_url : OptionalArgument String
+    , support : OptionalArgument Galerie.ScalarCodecs.Name
     , techniques : OptionalArgument String
-    , support : OptionalArgument String
-    , height : OptionalArgument Float
-    , width : OptionalArgument Float
-    , artist_id : OptionalArgument String
+    , title : OptionalArgument Galerie.ScalarCodecs.Name
+    , updated_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , width : OptionalArgument Galerie.ScalarCodecs.Interval
     }
 
 
-{-| Type for the ArtworkInputType input object.
+{-| Type alias for the `Artwork_insert_input` attributes. Note that this type
+needs to use the `Artwork_insert_input` type (not just a plain type alias) because it has
+references to itself either directly (recursive) or indirectly (circular). See
+<https://github.com/dillonkearns/elm-graphql/issues/33>.
 -}
-type alias ArtworkInputType =
-    { exhibition_ids : OptionalArgument (List (Maybe String))
-    , image_url : String
-    , title : String
+type alias Artwork_insert_inputRaw =
+    { artist : OptionalArgument Artist_obj_rel_insert_input
+    , artist_id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , created_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
     , description : OptionalArgument String
+    , height : OptionalArgument Int
+    , id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , image_url : OptionalArgument String
+    , support : OptionalArgument Galerie.ScalarCodecs.Name
     , techniques : OptionalArgument String
-    , support : OptionalArgument String
-    , height : OptionalArgument Float
-    , width : OptionalArgument Float
-    , artist_id : OptionalArgument String
+    , title : OptionalArgument Galerie.ScalarCodecs.Name
+    , updated_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , width : OptionalArgument Galerie.ScalarCodecs.Interval
     }
 
 
-{-| Encode a ArtworkInputType into a value that can be used as an argument.
+{-| Type for the Artwork\_insert\_input input object.
 -}
-encodeArtworkInputType : ArtworkInputType -> Value
-encodeArtworkInputType input =
+type Artwork_insert_input
+    = Artwork_insert_input Artwork_insert_inputRaw
+
+
+{-| Encode a Artwork\_insert\_input into a value that can be used as an argument.
+-}
+encodeArtwork_insert_input : Artwork_insert_input -> Value
+encodeArtwork_insert_input (Artwork_insert_input input) =
     Encode.maybeObject
-        [ ( "exhibition_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.exhibition_ids ), ( "image_url", Encode.string input.image_url |> Just ), ( "title", Encode.string input.title |> Just ), ( "description", Encode.string |> Encode.optional input.description ), ( "techniques", Encode.string |> Encode.optional input.techniques ), ( "support", Encode.string |> Encode.optional input.support ), ( "height", Encode.float |> Encode.optional input.height ), ( "width", Encode.float |> Encode.optional input.width ), ( "artist_id", Encode.string |> Encode.optional input.artist_id ) ]
+        [ ( "artist", encodeArtist_obj_rel_insert_input |> Encode.optional input.artist ), ( "artist_id", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.artist_id ), ( "created_at", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.created_at ), ( "description", Encode.string |> Encode.optional input.description ), ( "height", Encode.int |> Encode.optional input.height ), ( "id", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.id ), ( "image_url", Encode.string |> Encode.optional input.image_url ), ( "support", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.support ), ( "techniques", Encode.string |> Encode.optional input.techniques ), ( "title", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.title ), ( "updated_at", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.updated_at ), ( "width", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecInterval) |> Encode.optional input.width ) ]
 
 
-buildExhibitionInputType : (ExhibitionInputTypeOptionalFields -> ExhibitionInputTypeOptionalFields) -> ExhibitionInputType
-buildExhibitionInputType fillOptionals =
+buildArtwork_max_order_by : (Artwork_max_order_byOptionalFields -> Artwork_max_order_byOptionalFields) -> Artwork_max_order_by
+buildArtwork_max_order_by fillOptionals =
     let
         optionals =
             fillOptionals
-                { artwork_ids = Absent, title = Absent, description = Absent, beginning_date = Absent, ending_date = Absent, artist_id = Absent }
+                { created_at = Absent, description = Absent, height = Absent, image_url = Absent, techniques = Absent, updated_at = Absent }
     in
-    { artwork_ids = optionals.artwork_ids, title = optionals.title, description = optionals.description, beginning_date = optionals.beginning_date, ending_date = optionals.ending_date, artist_id = optionals.artist_id }
+    { created_at = optionals.created_at, description = optionals.description, height = optionals.height, image_url = optionals.image_url, techniques = optionals.techniques, updated_at = optionals.updated_at }
 
 
-type alias ExhibitionInputTypeOptionalFields =
-    { artwork_ids : OptionalArgument (List (Maybe String))
-    , title : OptionalArgument String
+type alias Artwork_max_order_byOptionalFields =
+    { created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , description : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , height : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , image_url : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , techniques : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Type for the Artwork\_max\_order\_by input object.
+-}
+type alias Artwork_max_order_by =
+    { created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , description : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , height : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , image_url : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , techniques : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Encode a Artwork\_max\_order\_by into a value that can be used as an argument.
+-}
+encodeArtwork_max_order_by : Artwork_max_order_by -> Value
+encodeArtwork_max_order_by input =
+    Encode.maybeObject
+        [ ( "created_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.created_at ), ( "description", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.description ), ( "height", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.height ), ( "image_url", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.image_url ), ( "techniques", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.techniques ), ( "updated_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.updated_at ) ]
+
+
+buildArtwork_min_order_by : (Artwork_min_order_byOptionalFields -> Artwork_min_order_byOptionalFields) -> Artwork_min_order_by
+buildArtwork_min_order_by fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { created_at = Absent, description = Absent, height = Absent, image_url = Absent, techniques = Absent, updated_at = Absent }
+    in
+    { created_at = optionals.created_at, description = optionals.description, height = optionals.height, image_url = optionals.image_url, techniques = optionals.techniques, updated_at = optionals.updated_at }
+
+
+type alias Artwork_min_order_byOptionalFields =
+    { created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , description : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , height : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , image_url : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , techniques : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Type for the Artwork\_min\_order\_by input object.
+-}
+type alias Artwork_min_order_by =
+    { created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , description : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , height : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , image_url : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , techniques : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Encode a Artwork\_min\_order\_by into a value that can be used as an argument.
+-}
+encodeArtwork_min_order_by : Artwork_min_order_by -> Value
+encodeArtwork_min_order_by input =
+    Encode.maybeObject
+        [ ( "created_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.created_at ), ( "description", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.description ), ( "height", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.height ), ( "image_url", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.image_url ), ( "techniques", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.techniques ), ( "updated_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.updated_at ) ]
+
+
+buildArtwork_obj_rel_insert_input : Artwork_obj_rel_insert_inputRequiredFields -> (Artwork_obj_rel_insert_inputOptionalFields -> Artwork_obj_rel_insert_inputOptionalFields) -> Artwork_obj_rel_insert_input
+buildArtwork_obj_rel_insert_input required fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { on_conflict = Absent }
+    in
+    Artwork_obj_rel_insert_input { data = required.data, on_conflict = optionals.on_conflict }
+
+
+type alias Artwork_obj_rel_insert_inputRequiredFields =
+    { data : Artwork_insert_input }
+
+
+type alias Artwork_obj_rel_insert_inputOptionalFields =
+    { on_conflict : OptionalArgument Artwork_on_conflict }
+
+
+{-| Type alias for the `Artwork_obj_rel_insert_input` attributes. Note that this type
+needs to use the `Artwork_obj_rel_insert_input` type (not just a plain type alias) because it has
+references to itself either directly (recursive) or indirectly (circular). See
+<https://github.com/dillonkearns/elm-graphql/issues/33>.
+-}
+type alias Artwork_obj_rel_insert_inputRaw =
+    { data : Artwork_insert_input
+    , on_conflict : OptionalArgument Artwork_on_conflict
+    }
+
+
+{-| Type for the Artwork\_obj\_rel\_insert\_input input object.
+-}
+type Artwork_obj_rel_insert_input
+    = Artwork_obj_rel_insert_input Artwork_obj_rel_insert_inputRaw
+
+
+{-| Encode a Artwork\_obj\_rel\_insert\_input into a value that can be used as an argument.
+-}
+encodeArtwork_obj_rel_insert_input : Artwork_obj_rel_insert_input -> Value
+encodeArtwork_obj_rel_insert_input (Artwork_obj_rel_insert_input input) =
+    Encode.maybeObject
+        [ ( "data", encodeArtwork_insert_input input.data |> Just ), ( "on_conflict", encodeArtwork_on_conflict |> Encode.optional input.on_conflict ) ]
+
+
+buildArtwork_on_conflict : Artwork_on_conflictRequiredFields -> Artwork_on_conflict
+buildArtwork_on_conflict required =
+    { constraint = required.constraint, update_columns = required.update_columns }
+
+
+type alias Artwork_on_conflictRequiredFields =
+    { constraint : Galerie.Enum.Artwork_constraint.Artwork_constraint
+    , update_columns : List Galerie.Enum.Artwork_update_column.Artwork_update_column
+    }
+
+
+{-| Type for the Artwork\_on\_conflict input object.
+-}
+type alias Artwork_on_conflict =
+    { constraint : Galerie.Enum.Artwork_constraint.Artwork_constraint
+    , update_columns : List Galerie.Enum.Artwork_update_column.Artwork_update_column
+    }
+
+
+{-| Encode a Artwork\_on\_conflict into a value that can be used as an argument.
+-}
+encodeArtwork_on_conflict : Artwork_on_conflict -> Value
+encodeArtwork_on_conflict input =
+    Encode.maybeObject
+        [ ( "constraint", Encode.enum Galerie.Enum.Artwork_constraint.toString input.constraint |> Just ), ( "update_columns", (Encode.enum Galerie.Enum.Artwork_update_column.toString |> Encode.list) input.update_columns |> Just ) ]
+
+
+buildArtwork_order_by : (Artwork_order_byOptionalFields -> Artwork_order_byOptionalFields) -> Artwork_order_by
+buildArtwork_order_by fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { artist = Absent, artist_id = Absent, created_at = Absent, description = Absent, height = Absent, id = Absent, image_url = Absent, support = Absent, techniques = Absent, title = Absent, updated_at = Absent, width = Absent }
+    in
+    Artwork_order_by { artist = optionals.artist, artist_id = optionals.artist_id, created_at = optionals.created_at, description = optionals.description, height = optionals.height, id = optionals.id, image_url = optionals.image_url, support = optionals.support, techniques = optionals.techniques, title = optionals.title, updated_at = optionals.updated_at, width = optionals.width }
+
+
+type alias Artwork_order_byOptionalFields =
+    { artist : OptionalArgument Artist_order_by
+    , artist_id : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , description : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , height : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , id : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , image_url : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , support : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , techniques : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , title : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , width : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Type alias for the `Artwork_order_by` attributes. Note that this type
+needs to use the `Artwork_order_by` type (not just a plain type alias) because it has
+references to itself either directly (recursive) or indirectly (circular). See
+<https://github.com/dillonkearns/elm-graphql/issues/33>.
+-}
+type alias Artwork_order_byRaw =
+    { artist : OptionalArgument Artist_order_by
+    , artist_id : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , created_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , description : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , height : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , id : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , image_url : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , support : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , techniques : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , title : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , updated_at : OptionalArgument Galerie.Enum.Order_by.Order_by
+    , width : OptionalArgument Galerie.Enum.Order_by.Order_by
+    }
+
+
+{-| Type for the Artwork\_order\_by input object.
+-}
+type Artwork_order_by
+    = Artwork_order_by Artwork_order_byRaw
+
+
+{-| Encode a Artwork\_order\_by into a value that can be used as an argument.
+-}
+encodeArtwork_order_by : Artwork_order_by -> Value
+encodeArtwork_order_by (Artwork_order_by input) =
+    Encode.maybeObject
+        [ ( "artist", encodeArtist_order_by |> Encode.optional input.artist ), ( "artist_id", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.artist_id ), ( "created_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.created_at ), ( "description", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.description ), ( "height", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.height ), ( "id", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.id ), ( "image_url", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.image_url ), ( "support", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.support ), ( "techniques", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.techniques ), ( "title", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.title ), ( "updated_at", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.updated_at ), ( "width", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.width ) ]
+
+
+buildArtwork_set_input : (Artwork_set_inputOptionalFields -> Artwork_set_inputOptionalFields) -> Artwork_set_input
+buildArtwork_set_input fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { artist_id = Absent, created_at = Absent, description = Absent, height = Absent, id = Absent, image_url = Absent, support = Absent, techniques = Absent, title = Absent, updated_at = Absent, width = Absent }
+    in
+    { artist_id = optionals.artist_id, created_at = optionals.created_at, description = optionals.description, height = optionals.height, id = optionals.id, image_url = optionals.image_url, support = optionals.support, techniques = optionals.techniques, title = optionals.title, updated_at = optionals.updated_at, width = optionals.width }
+
+
+type alias Artwork_set_inputOptionalFields =
+    { artist_id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , created_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
     , description : OptionalArgument String
-    , beginning_date : OptionalArgument String
-    , ending_date : OptionalArgument String
-    , artist_id : OptionalArgument String
+    , height : OptionalArgument Int
+    , id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , image_url : OptionalArgument String
+    , support : OptionalArgument Galerie.ScalarCodecs.Name
+    , techniques : OptionalArgument String
+    , title : OptionalArgument Galerie.ScalarCodecs.Name
+    , updated_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , width : OptionalArgument Galerie.ScalarCodecs.Interval
     }
 
 
-{-| Type for the ExhibitionInputType input object.
+{-| Type for the Artwork\_set\_input input object.
 -}
-type alias ExhibitionInputType =
-    { artwork_ids : OptionalArgument (List (Maybe String))
-    , title : OptionalArgument String
+type alias Artwork_set_input =
+    { artist_id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , created_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
     , description : OptionalArgument String
-    , beginning_date : OptionalArgument String
-    , ending_date : OptionalArgument String
-    , artist_id : OptionalArgument String
+    , height : OptionalArgument Int
+    , id : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , image_url : OptionalArgument String
+    , support : OptionalArgument Galerie.ScalarCodecs.Name
+    , techniques : OptionalArgument String
+    , title : OptionalArgument Galerie.ScalarCodecs.Name
+    , updated_at : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , width : OptionalArgument Galerie.ScalarCodecs.Interval
     }
 
 
-{-| Encode a ExhibitionInputType into a value that can be used as an argument.
+{-| Encode a Artwork\_set\_input into a value that can be used as an argument.
 -}
-encodeExhibitionInputType : ExhibitionInputType -> Value
-encodeExhibitionInputType input =
+encodeArtwork_set_input : Artwork_set_input -> Value
+encodeArtwork_set_input input =
     Encode.maybeObject
-        [ ( "artwork_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.artwork_ids ), ( "title", Encode.string |> Encode.optional input.title ), ( "description", Encode.string |> Encode.optional input.description ), ( "beginning_date", Encode.string |> Encode.optional input.beginning_date ), ( "ending_date", Encode.string |> Encode.optional input.ending_date ), ( "artist_id", Encode.string |> Encode.optional input.artist_id ) ]
+        [ ( "artist_id", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.artist_id ), ( "created_at", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.created_at ), ( "description", Encode.string |> Encode.optional input.description ), ( "height", Encode.int |> Encode.optional input.height ), ( "id", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.id ), ( "image_url", Encode.string |> Encode.optional input.image_url ), ( "support", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.support ), ( "techniques", Encode.string |> Encode.optional input.techniques ), ( "title", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.title ), ( "updated_at", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.updated_at ), ( "width", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecInterval) |> Encode.optional input.width ) ]
 
 
-buildSubscribedQueryInputType : (SubscribedQueryInputTypeOptionalFields -> SubscribedQueryInputTypeOptionalFields) -> SubscribedQueryInputType
-buildSubscribedQueryInputType fillOptionals =
+buildArtwork_stddev_order_by : (Artwork_stddev_order_byOptionalFields -> Artwork_stddev_order_byOptionalFields) -> Artwork_stddev_order_by
+buildArtwork_stddev_order_by fillOptionals =
     let
         optionals =
             fillOptionals
-                { websocket_connection_id = Absent, result_hash = Absent, query = Absent }
+                { height = Absent }
     in
-    { websocket_connection_id = optionals.websocket_connection_id, result_hash = optionals.result_hash, query = optionals.query }
+    { height = optionals.height }
 
 
-type alias SubscribedQueryInputTypeOptionalFields =
-    { websocket_connection_id : OptionalArgument String
-    , result_hash : OptionalArgument String
-    , query : OptionalArgument String
-    }
+type alias Artwork_stddev_order_byOptionalFields =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
 
 
-{-| Type for the SubscribedQueryInputType input object.
+{-| Type for the Artwork\_stddev\_order\_by input object.
 -}
-type alias SubscribedQueryInputType =
-    { websocket_connection_id : OptionalArgument String
-    , result_hash : OptionalArgument String
-    , query : OptionalArgument String
-    }
+type alias Artwork_stddev_order_by =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
 
 
-{-| Encode a SubscribedQueryInputType into a value that can be used as an argument.
+{-| Encode a Artwork\_stddev\_order\_by into a value that can be used as an argument.
 -}
-encodeSubscribedQueryInputType : SubscribedQueryInputType -> Value
-encodeSubscribedQueryInputType input =
+encodeArtwork_stddev_order_by : Artwork_stddev_order_by -> Value
+encodeArtwork_stddev_order_by input =
     Encode.maybeObject
-        [ ( "websocket_connection_id", Encode.string |> Encode.optional input.websocket_connection_id ), ( "result_hash", Encode.string |> Encode.optional input.result_hash ), ( "query", Encode.string |> Encode.optional input.query ) ]
+        [ ( "height", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.height ) ]
 
 
-buildUserInputType : (UserInputTypeOptionalFields -> UserInputTypeOptionalFields) -> UserInputType
-buildUserInputType fillOptionals =
+buildArtwork_stddev_pop_order_by : (Artwork_stddev_pop_order_byOptionalFields -> Artwork_stddev_pop_order_byOptionalFields) -> Artwork_stddev_pop_order_by
+buildArtwork_stddev_pop_order_by fillOptionals =
     let
         optionals =
             fillOptionals
-                { websocket_connection_ids = Absent, first_name = Absent, last_name = Absent, email = Absent }
+                { height = Absent }
     in
-    { websocket_connection_ids = optionals.websocket_connection_ids, first_name = optionals.first_name, last_name = optionals.last_name, email = optionals.email }
+    { height = optionals.height }
 
 
-type alias UserInputTypeOptionalFields =
-    { websocket_connection_ids : OptionalArgument (List (Maybe String))
-    , first_name : OptionalArgument String
-    , last_name : OptionalArgument String
-    , email : OptionalArgument String
-    }
+type alias Artwork_stddev_pop_order_byOptionalFields =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
 
 
-{-| Type for the UserInputType input object.
+{-| Type for the Artwork\_stddev\_pop\_order\_by input object.
 -}
-type alias UserInputType =
-    { websocket_connection_ids : OptionalArgument (List (Maybe String))
-    , first_name : OptionalArgument String
-    , last_name : OptionalArgument String
-    , email : OptionalArgument String
-    }
+type alias Artwork_stddev_pop_order_by =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
 
 
-{-| Encode a UserInputType into a value that can be used as an argument.
+{-| Encode a Artwork\_stddev\_pop\_order\_by into a value that can be used as an argument.
 -}
-encodeUserInputType : UserInputType -> Value
-encodeUserInputType input =
+encodeArtwork_stddev_pop_order_by : Artwork_stddev_pop_order_by -> Value
+encodeArtwork_stddev_pop_order_by input =
     Encode.maybeObject
-        [ ( "websocket_connection_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.websocket_connection_ids ), ( "first_name", Encode.string |> Encode.optional input.first_name ), ( "last_name", Encode.string |> Encode.optional input.last_name ), ( "email", Encode.string |> Encode.optional input.email ) ]
+        [ ( "height", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.height ) ]
 
 
-buildWebsocketConnectionInputType : (WebsocketConnectionInputTypeOptionalFields -> WebsocketConnectionInputTypeOptionalFields) -> WebsocketConnectionInputType
-buildWebsocketConnectionInputType fillOptionals =
+buildArtwork_stddev_samp_order_by : (Artwork_stddev_samp_order_byOptionalFields -> Artwork_stddev_samp_order_byOptionalFields) -> Artwork_stddev_samp_order_by
+buildArtwork_stddev_samp_order_by fillOptionals =
     let
         optionals =
             fillOptionals
-                { subscribed_query_ids = Absent, user_id = Absent, connection_identifier = Absent }
+                { height = Absent }
     in
-    { subscribed_query_ids = optionals.subscribed_query_ids, user_id = optionals.user_id, connection_identifier = optionals.connection_identifier }
+    { height = optionals.height }
 
 
-type alias WebsocketConnectionInputTypeOptionalFields =
-    { subscribed_query_ids : OptionalArgument (List (Maybe String))
-    , user_id : OptionalArgument String
-    , connection_identifier : OptionalArgument String
-    }
+type alias Artwork_stddev_samp_order_byOptionalFields =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
 
 
-{-| Type for the WebsocketConnectionInputType input object.
+{-| Type for the Artwork\_stddev\_samp\_order\_by input object.
 -}
-type alias WebsocketConnectionInputType =
-    { subscribed_query_ids : OptionalArgument (List (Maybe String))
-    , user_id : OptionalArgument String
-    , connection_identifier : OptionalArgument String
-    }
+type alias Artwork_stddev_samp_order_by =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
 
 
-{-| Encode a WebsocketConnectionInputType into a value that can be used as an argument.
+{-| Encode a Artwork\_stddev\_samp\_order\_by into a value that can be used as an argument.
 -}
-encodeWebsocketConnectionInputType : WebsocketConnectionInputType -> Value
-encodeWebsocketConnectionInputType input =
+encodeArtwork_stddev_samp_order_by : Artwork_stddev_samp_order_by -> Value
+encodeArtwork_stddev_samp_order_by input =
     Encode.maybeObject
-        [ ( "subscribed_query_ids", (Encode.string |> Encode.maybe |> Encode.list) |> Encode.optional input.subscribed_query_ids ), ( "user_id", Encode.string |> Encode.optional input.user_id ), ( "connection_identifier", Encode.string |> Encode.optional input.connection_identifier ) ]
+        [ ( "height", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.height ) ]
+
+
+buildArtwork_sum_order_by : (Artwork_sum_order_byOptionalFields -> Artwork_sum_order_byOptionalFields) -> Artwork_sum_order_by
+buildArtwork_sum_order_by fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { height = Absent }
+    in
+    { height = optionals.height }
+
+
+type alias Artwork_sum_order_byOptionalFields =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
+
+
+{-| Type for the Artwork\_sum\_order\_by input object.
+-}
+type alias Artwork_sum_order_by =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
+
+
+{-| Encode a Artwork\_sum\_order\_by into a value that can be used as an argument.
+-}
+encodeArtwork_sum_order_by : Artwork_sum_order_by -> Value
+encodeArtwork_sum_order_by input =
+    Encode.maybeObject
+        [ ( "height", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.height ) ]
+
+
+buildArtwork_var_pop_order_by : (Artwork_var_pop_order_byOptionalFields -> Artwork_var_pop_order_byOptionalFields) -> Artwork_var_pop_order_by
+buildArtwork_var_pop_order_by fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { height = Absent }
+    in
+    { height = optionals.height }
+
+
+type alias Artwork_var_pop_order_byOptionalFields =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
+
+
+{-| Type for the Artwork\_var\_pop\_order\_by input object.
+-}
+type alias Artwork_var_pop_order_by =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
+
+
+{-| Encode a Artwork\_var\_pop\_order\_by into a value that can be used as an argument.
+-}
+encodeArtwork_var_pop_order_by : Artwork_var_pop_order_by -> Value
+encodeArtwork_var_pop_order_by input =
+    Encode.maybeObject
+        [ ( "height", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.height ) ]
+
+
+buildArtwork_var_samp_order_by : (Artwork_var_samp_order_byOptionalFields -> Artwork_var_samp_order_byOptionalFields) -> Artwork_var_samp_order_by
+buildArtwork_var_samp_order_by fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { height = Absent }
+    in
+    { height = optionals.height }
+
+
+type alias Artwork_var_samp_order_byOptionalFields =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
+
+
+{-| Type for the Artwork\_var\_samp\_order\_by input object.
+-}
+type alias Artwork_var_samp_order_by =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
+
+
+{-| Encode a Artwork\_var\_samp\_order\_by into a value that can be used as an argument.
+-}
+encodeArtwork_var_samp_order_by : Artwork_var_samp_order_by -> Value
+encodeArtwork_var_samp_order_by input =
+    Encode.maybeObject
+        [ ( "height", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.height ) ]
+
+
+buildArtwork_variance_order_by : (Artwork_variance_order_byOptionalFields -> Artwork_variance_order_byOptionalFields) -> Artwork_variance_order_by
+buildArtwork_variance_order_by fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { height = Absent }
+    in
+    { height = optionals.height }
+
+
+type alias Artwork_variance_order_byOptionalFields =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
+
+
+{-| Type for the Artwork\_variance\_order\_by input object.
+-}
+type alias Artwork_variance_order_by =
+    { height : OptionalArgument Galerie.Enum.Order_by.Order_by }
+
+
+{-| Encode a Artwork\_variance\_order\_by into a value that can be used as an argument.
+-}
+encodeArtwork_variance_order_by : Artwork_variance_order_by -> Value
+encodeArtwork_variance_order_by input =
+    Encode.maybeObject
+        [ ( "height", Encode.enum Galerie.Enum.Order_by.toString |> Encode.optional input.height ) ]
+
+
+buildInt_comparison_exp : (Int_comparison_expOptionalFields -> Int_comparison_expOptionalFields) -> Int_comparison_exp
+buildInt_comparison_exp fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { eq_ = Absent, gt_ = Absent, gte_ = Absent, in_ = Absent, is_null_ = Absent, lt_ = Absent, lte_ = Absent, neq_ = Absent, nin_ = Absent }
+    in
+    { eq_ = optionals.eq_, gt_ = optionals.gt_, gte_ = optionals.gte_, in_ = optionals.in_, is_null_ = optionals.is_null_, lt_ = optionals.lt_, lte_ = optionals.lte_, neq_ = optionals.neq_, nin_ = optionals.nin_ }
+
+
+type alias Int_comparison_expOptionalFields =
+    { eq_ : OptionalArgument Int
+    , gt_ : OptionalArgument Int
+    , gte_ : OptionalArgument Int
+    , in_ : OptionalArgument (List Int)
+    , is_null_ : OptionalArgument Bool
+    , lt_ : OptionalArgument Int
+    , lte_ : OptionalArgument Int
+    , neq_ : OptionalArgument Int
+    , nin_ : OptionalArgument (List Int)
+    }
+
+
+{-| Type for the Int\_comparison\_exp input object.
+-}
+type alias Int_comparison_exp =
+    { eq_ : OptionalArgument Int
+    , gt_ : OptionalArgument Int
+    , gte_ : OptionalArgument Int
+    , in_ : OptionalArgument (List Int)
+    , is_null_ : OptionalArgument Bool
+    , lt_ : OptionalArgument Int
+    , lte_ : OptionalArgument Int
+    , neq_ : OptionalArgument Int
+    , nin_ : OptionalArgument (List Int)
+    }
+
+
+{-| Encode a Int\_comparison\_exp into a value that can be used as an argument.
+-}
+encodeInt_comparison_exp : Int_comparison_exp -> Value
+encodeInt_comparison_exp input =
+    Encode.maybeObject
+        [ ( "_eq", Encode.int |> Encode.optional input.eq_ ), ( "_gt", Encode.int |> Encode.optional input.gt_ ), ( "_gte", Encode.int |> Encode.optional input.gte_ ), ( "_in", (Encode.int |> Encode.list) |> Encode.optional input.in_ ), ( "_is_null", Encode.bool |> Encode.optional input.is_null_ ), ( "_lt", Encode.int |> Encode.optional input.lt_ ), ( "_lte", Encode.int |> Encode.optional input.lte_ ), ( "_neq", Encode.int |> Encode.optional input.neq_ ), ( "_nin", (Encode.int |> Encode.list) |> Encode.optional input.nin_ ) ]
+
+
+buildInterval_comparison_exp : (Interval_comparison_expOptionalFields -> Interval_comparison_expOptionalFields) -> Interval_comparison_exp
+buildInterval_comparison_exp fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { eq_ = Absent, gt_ = Absent, gte_ = Absent, in_ = Absent, is_null_ = Absent, lt_ = Absent, lte_ = Absent, neq_ = Absent, nin_ = Absent }
+    in
+    { eq_ = optionals.eq_, gt_ = optionals.gt_, gte_ = optionals.gte_, in_ = optionals.in_, is_null_ = optionals.is_null_, lt_ = optionals.lt_, lte_ = optionals.lte_, neq_ = optionals.neq_, nin_ = optionals.nin_ }
+
+
+type alias Interval_comparison_expOptionalFields =
+    { eq_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , gt_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , gte_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , in_ : OptionalArgument (List Galerie.ScalarCodecs.Interval)
+    , is_null_ : OptionalArgument Bool
+    , lt_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , lte_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , neq_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , nin_ : OptionalArgument (List Galerie.ScalarCodecs.Interval)
+    }
+
+
+{-| Type for the Interval\_comparison\_exp input object.
+-}
+type alias Interval_comparison_exp =
+    { eq_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , gt_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , gte_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , in_ : OptionalArgument (List Galerie.ScalarCodecs.Interval)
+    , is_null_ : OptionalArgument Bool
+    , lt_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , lte_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , neq_ : OptionalArgument Galerie.ScalarCodecs.Interval
+    , nin_ : OptionalArgument (List Galerie.ScalarCodecs.Interval)
+    }
+
+
+{-| Encode a Interval\_comparison\_exp into a value that can be used as an argument.
+-}
+encodeInterval_comparison_exp : Interval_comparison_exp -> Value
+encodeInterval_comparison_exp input =
+    Encode.maybeObject
+        [ ( "_eq", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecInterval) |> Encode.optional input.eq_ ), ( "_gt", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecInterval) |> Encode.optional input.gt_ ), ( "_gte", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecInterval) |> Encode.optional input.gte_ ), ( "_in", ((Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecInterval) |> Encode.list) |> Encode.optional input.in_ ), ( "_is_null", Encode.bool |> Encode.optional input.is_null_ ), ( "_lt", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecInterval) |> Encode.optional input.lt_ ), ( "_lte", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecInterval) |> Encode.optional input.lte_ ), ( "_neq", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecInterval) |> Encode.optional input.neq_ ), ( "_nin", ((Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecInterval) |> Encode.list) |> Encode.optional input.nin_ ) ]
+
+
+buildName_comparison_exp : (Name_comparison_expOptionalFields -> Name_comparison_expOptionalFields) -> Name_comparison_exp
+buildName_comparison_exp fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { eq_ = Absent, gt_ = Absent, gte_ = Absent, in_ = Absent, is_null_ = Absent, lt_ = Absent, lte_ = Absent, neq_ = Absent, nin_ = Absent }
+    in
+    { eq_ = optionals.eq_, gt_ = optionals.gt_, gte_ = optionals.gte_, in_ = optionals.in_, is_null_ = optionals.is_null_, lt_ = optionals.lt_, lte_ = optionals.lte_, neq_ = optionals.neq_, nin_ = optionals.nin_ }
+
+
+type alias Name_comparison_expOptionalFields =
+    { eq_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , gt_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , gte_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , in_ : OptionalArgument (List Galerie.ScalarCodecs.Name)
+    , is_null_ : OptionalArgument Bool
+    , lt_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , lte_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , neq_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , nin_ : OptionalArgument (List Galerie.ScalarCodecs.Name)
+    }
+
+
+{-| Type for the Name\_comparison\_exp input object.
+-}
+type alias Name_comparison_exp =
+    { eq_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , gt_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , gte_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , in_ : OptionalArgument (List Galerie.ScalarCodecs.Name)
+    , is_null_ : OptionalArgument Bool
+    , lt_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , lte_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , neq_ : OptionalArgument Galerie.ScalarCodecs.Name
+    , nin_ : OptionalArgument (List Galerie.ScalarCodecs.Name)
+    }
+
+
+{-| Encode a Name\_comparison\_exp into a value that can be used as an argument.
+-}
+encodeName_comparison_exp : Name_comparison_exp -> Value
+encodeName_comparison_exp input =
+    Encode.maybeObject
+        [ ( "_eq", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.eq_ ), ( "_gt", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.gt_ ), ( "_gte", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.gte_ ), ( "_in", ((Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.list) |> Encode.optional input.in_ ), ( "_is_null", Encode.bool |> Encode.optional input.is_null_ ), ( "_lt", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.lt_ ), ( "_lte", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.lte_ ), ( "_neq", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.optional input.neq_ ), ( "_nin", ((Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecName) |> Encode.list) |> Encode.optional input.nin_ ) ]
+
+
+buildString_comparison_exp : (String_comparison_expOptionalFields -> String_comparison_expOptionalFields) -> String_comparison_exp
+buildString_comparison_exp fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { eq_ = Absent, gt_ = Absent, gte_ = Absent, ilike_ = Absent, in_ = Absent, is_null_ = Absent, like_ = Absent, lt_ = Absent, lte_ = Absent, neq_ = Absent, nilike_ = Absent, nin_ = Absent, nlike_ = Absent, nsimilar_ = Absent, similar_ = Absent }
+    in
+    { eq_ = optionals.eq_, gt_ = optionals.gt_, gte_ = optionals.gte_, ilike_ = optionals.ilike_, in_ = optionals.in_, is_null_ = optionals.is_null_, like_ = optionals.like_, lt_ = optionals.lt_, lte_ = optionals.lte_, neq_ = optionals.neq_, nilike_ = optionals.nilike_, nin_ = optionals.nin_, nlike_ = optionals.nlike_, nsimilar_ = optionals.nsimilar_, similar_ = optionals.similar_ }
+
+
+type alias String_comparison_expOptionalFields =
+    { eq_ : OptionalArgument String
+    , gt_ : OptionalArgument String
+    , gte_ : OptionalArgument String
+    , ilike_ : OptionalArgument String
+    , in_ : OptionalArgument (List String)
+    , is_null_ : OptionalArgument Bool
+    , like_ : OptionalArgument String
+    , lt_ : OptionalArgument String
+    , lte_ : OptionalArgument String
+    , neq_ : OptionalArgument String
+    , nilike_ : OptionalArgument String
+    , nin_ : OptionalArgument (List String)
+    , nlike_ : OptionalArgument String
+    , nsimilar_ : OptionalArgument String
+    , similar_ : OptionalArgument String
+    }
+
+
+{-| Type for the String\_comparison\_exp input object.
+-}
+type alias String_comparison_exp =
+    { eq_ : OptionalArgument String
+    , gt_ : OptionalArgument String
+    , gte_ : OptionalArgument String
+    , ilike_ : OptionalArgument String
+    , in_ : OptionalArgument (List String)
+    , is_null_ : OptionalArgument Bool
+    , like_ : OptionalArgument String
+    , lt_ : OptionalArgument String
+    , lte_ : OptionalArgument String
+    , neq_ : OptionalArgument String
+    , nilike_ : OptionalArgument String
+    , nin_ : OptionalArgument (List String)
+    , nlike_ : OptionalArgument String
+    , nsimilar_ : OptionalArgument String
+    , similar_ : OptionalArgument String
+    }
+
+
+{-| Encode a String\_comparison\_exp into a value that can be used as an argument.
+-}
+encodeString_comparison_exp : String_comparison_exp -> Value
+encodeString_comparison_exp input =
+    Encode.maybeObject
+        [ ( "_eq", Encode.string |> Encode.optional input.eq_ ), ( "_gt", Encode.string |> Encode.optional input.gt_ ), ( "_gte", Encode.string |> Encode.optional input.gte_ ), ( "_ilike", Encode.string |> Encode.optional input.ilike_ ), ( "_in", (Encode.string |> Encode.list) |> Encode.optional input.in_ ), ( "_is_null", Encode.bool |> Encode.optional input.is_null_ ), ( "_like", Encode.string |> Encode.optional input.like_ ), ( "_lt", Encode.string |> Encode.optional input.lt_ ), ( "_lte", Encode.string |> Encode.optional input.lte_ ), ( "_neq", Encode.string |> Encode.optional input.neq_ ), ( "_nilike", Encode.string |> Encode.optional input.nilike_ ), ( "_nin", (Encode.string |> Encode.list) |> Encode.optional input.nin_ ), ( "_nlike", Encode.string |> Encode.optional input.nlike_ ), ( "_nsimilar", Encode.string |> Encode.optional input.nsimilar_ ), ( "_similar", Encode.string |> Encode.optional input.similar_ ) ]
+
+
+buildTimestamptz_comparison_exp : (Timestamptz_comparison_expOptionalFields -> Timestamptz_comparison_expOptionalFields) -> Timestamptz_comparison_exp
+buildTimestamptz_comparison_exp fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { eq_ = Absent, gt_ = Absent, gte_ = Absent, in_ = Absent, is_null_ = Absent, lt_ = Absent, lte_ = Absent, neq_ = Absent, nin_ = Absent }
+    in
+    { eq_ = optionals.eq_, gt_ = optionals.gt_, gte_ = optionals.gte_, in_ = optionals.in_, is_null_ = optionals.is_null_, lt_ = optionals.lt_, lte_ = optionals.lte_, neq_ = optionals.neq_, nin_ = optionals.nin_ }
+
+
+type alias Timestamptz_comparison_expOptionalFields =
+    { eq_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , gt_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , gte_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , in_ : OptionalArgument (List Galerie.ScalarCodecs.Timestamptz)
+    , is_null_ : OptionalArgument Bool
+    , lt_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , lte_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , neq_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , nin_ : OptionalArgument (List Galerie.ScalarCodecs.Timestamptz)
+    }
+
+
+{-| Type for the Timestamptz\_comparison\_exp input object.
+-}
+type alias Timestamptz_comparison_exp =
+    { eq_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , gt_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , gte_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , in_ : OptionalArgument (List Galerie.ScalarCodecs.Timestamptz)
+    , is_null_ : OptionalArgument Bool
+    , lt_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , lte_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , neq_ : OptionalArgument Galerie.ScalarCodecs.Timestamptz
+    , nin_ : OptionalArgument (List Galerie.ScalarCodecs.Timestamptz)
+    }
+
+
+{-| Encode a Timestamptz\_comparison\_exp into a value that can be used as an argument.
+-}
+encodeTimestamptz_comparison_exp : Timestamptz_comparison_exp -> Value
+encodeTimestamptz_comparison_exp input =
+    Encode.maybeObject
+        [ ( "_eq", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.eq_ ), ( "_gt", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.gt_ ), ( "_gte", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.gte_ ), ( "_in", ((Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.list) |> Encode.optional input.in_ ), ( "_is_null", Encode.bool |> Encode.optional input.is_null_ ), ( "_lt", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.lt_ ), ( "_lte", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.lte_ ), ( "_neq", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.optional input.neq_ ), ( "_nin", ((Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecTimestamptz) |> Encode.list) |> Encode.optional input.nin_ ) ]
+
+
+buildUuid_comparison_exp : (Uuid_comparison_expOptionalFields -> Uuid_comparison_expOptionalFields) -> Uuid_comparison_exp
+buildUuid_comparison_exp fillOptionals =
+    let
+        optionals =
+            fillOptionals
+                { eq_ = Absent, gt_ = Absent, gte_ = Absent, in_ = Absent, is_null_ = Absent, lt_ = Absent, lte_ = Absent, neq_ = Absent, nin_ = Absent }
+    in
+    { eq_ = optionals.eq_, gt_ = optionals.gt_, gte_ = optionals.gte_, in_ = optionals.in_, is_null_ = optionals.is_null_, lt_ = optionals.lt_, lte_ = optionals.lte_, neq_ = optionals.neq_, nin_ = optionals.nin_ }
+
+
+type alias Uuid_comparison_expOptionalFields =
+    { eq_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , gt_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , gte_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , in_ : OptionalArgument (List Galerie.ScalarCodecs.Uuid)
+    , is_null_ : OptionalArgument Bool
+    , lt_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , lte_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , neq_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , nin_ : OptionalArgument (List Galerie.ScalarCodecs.Uuid)
+    }
+
+
+{-| Type for the Uuid\_comparison\_exp input object.
+-}
+type alias Uuid_comparison_exp =
+    { eq_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , gt_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , gte_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , in_ : OptionalArgument (List Galerie.ScalarCodecs.Uuid)
+    , is_null_ : OptionalArgument Bool
+    , lt_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , lte_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , neq_ : OptionalArgument Galerie.ScalarCodecs.Uuid
+    , nin_ : OptionalArgument (List Galerie.ScalarCodecs.Uuid)
+    }
+
+
+{-| Encode a Uuid\_comparison\_exp into a value that can be used as an argument.
+-}
+encodeUuid_comparison_exp : Uuid_comparison_exp -> Value
+encodeUuid_comparison_exp input =
+    Encode.maybeObject
+        [ ( "_eq", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.eq_ ), ( "_gt", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.gt_ ), ( "_gte", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.gte_ ), ( "_in", ((Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.list) |> Encode.optional input.in_ ), ( "_is_null", Encode.bool |> Encode.optional input.is_null_ ), ( "_lt", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.lt_ ), ( "_lte", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.lte_ ), ( "_neq", (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.optional input.neq_ ), ( "_nin", ((Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) |> Encode.list) |> Encode.optional input.nin_ ) ]

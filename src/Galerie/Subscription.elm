@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Galerie.Query exposing (..)
+module Galerie.Subscription exposing (..)
 
 import Galerie.Enum.Artist_select_column
 import Galerie.Enum.Artwork_select_column
@@ -39,7 +39,7 @@ type alias ArtistOptionalArguments =
   - where\_ - filter the rows returned
 
 -}
-artist : (ArtistOptionalArguments -> ArtistOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet (List decodesTo) RootQuery
+artist : (ArtistOptionalArguments -> ArtistOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet (List decodesTo) RootSubscription
 artist fillInOptionals object_ =
     let
         filledInOptionals =
@@ -70,7 +70,7 @@ type alias ArtistAggregateOptionalArguments =
   - where\_ - filter the rows returned
 
 -}
-artist_aggregate : (ArtistAggregateOptionalArguments -> ArtistAggregateOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artist_aggregate -> SelectionSet decodesTo RootQuery
+artist_aggregate : (ArtistAggregateOptionalArguments -> ArtistAggregateOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artist_aggregate -> SelectionSet decodesTo RootSubscription
 artist_aggregate fillInOptionals object_ =
     let
         filledInOptionals =
@@ -89,7 +89,7 @@ type alias ArtistByPkRequiredArguments =
 
 {-| fetch data from the table: "artist" using primary key columns
 -}
-artist_by_pk : ArtistByPkRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet (Maybe decodesTo) RootQuery
+artist_by_pk : ArtistByPkRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artist -> SelectionSet (Maybe decodesTo) RootSubscription
 artist_by_pk requiredArgs object_ =
     Object.selectionForCompositeField "artist_by_pk" [ Argument.required "id" requiredArgs.id (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) ] object_ (identity >> Decode.nullable)
 
@@ -112,7 +112,7 @@ type alias ArtworkOptionalArguments =
   - where\_ - filter the rows returned
 
 -}
-artwork : (ArtworkOptionalArguments -> ArtworkOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (List decodesTo) RootQuery
+artwork : (ArtworkOptionalArguments -> ArtworkOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (List decodesTo) RootSubscription
 artwork fillInOptionals object_ =
     let
         filledInOptionals =
@@ -143,7 +143,7 @@ type alias ArtworkAggregateOptionalArguments =
   - where\_ - filter the rows returned
 
 -}
-artwork_aggregate : (ArtworkAggregateOptionalArguments -> ArtworkAggregateOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artwork_aggregate -> SelectionSet decodesTo RootQuery
+artwork_aggregate : (ArtworkAggregateOptionalArguments -> ArtworkAggregateOptionalArguments) -> SelectionSet decodesTo Galerie.Object.Artwork_aggregate -> SelectionSet decodesTo RootSubscription
 artwork_aggregate fillInOptionals object_ =
     let
         filledInOptionals =
@@ -162,6 +162,6 @@ type alias ArtworkByPkRequiredArguments =
 
 {-| fetch data from the table: "artwork" using primary key columns
 -}
-artwork_by_pk : ArtworkByPkRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (Maybe decodesTo) RootQuery
+artwork_by_pk : ArtworkByPkRequiredArguments -> SelectionSet decodesTo Galerie.Object.Artwork -> SelectionSet (Maybe decodesTo) RootSubscription
 artwork_by_pk requiredArgs object_ =
     Object.selectionForCompositeField "artwork_by_pk" [ Argument.required "id" requiredArgs.id (Galerie.ScalarCodecs.codecs |> Galerie.Scalar.unwrapEncoder .codecUuid) ] object_ (identity >> Decode.nullable)

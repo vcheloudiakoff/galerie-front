@@ -562,7 +562,7 @@ createArtwork data =
 
 endPoint : String
 endPoint =
-    "http://localhost:3000/graphql"
+    "https://galerie-api.herokuapp.com/v1/graphql"
 
 
 

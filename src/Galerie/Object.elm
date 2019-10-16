@@ -9,21 +9,77 @@ type Artist
     = Artist
 
 
+type Artist_aggregate
+    = Artist_aggregate
+
+
+type Artist_aggregate_fields
+    = Artist_aggregate_fields
+
+
+type Artist_max_fields
+    = Artist_max_fields
+
+
+type Artist_min_fields
+    = Artist_min_fields
+
+
+type Artist_mutation_response
+    = Artist_mutation_response
+
+
 type Artwork
     = Artwork
 
 
-type Exhibition
-    = Exhibition
+type Artwork_aggregate
+    = Artwork_aggregate
 
 
-type SubscribedQuery
-    = SubscribedQuery
+type Artwork_aggregate_fields
+    = Artwork_aggregate_fields
 
 
-type User
-    = User
+type Artwork_avg_fields
+    = Artwork_avg_fields
 
 
-type WebsocketConnection
-    = WebsocketConnection
+type Artwork_max_fields
+    = Artwork_max_fields
+
+
+type Artwork_min_fields
+    = Artwork_min_fields
+
+
+type Artwork_mutation_response
+    = Artwork_mutation_response
+
+
+type Artwork_stddev_fields
+    = Artwork_stddev_fields
+
+
+type Artwork_stddev_pop_fields
+    = Artwork_stddev_pop_fields
+
+
+type Artwork_stddev_samp_fields
+    = Artwork_stddev_samp_fields
+
+
+type Artwork_sum_fields
+    = Artwork_sum_fields
+
+
+type Artwork_var_pop_fields
+    = Artwork_var_pop_fields
+
+
+type Artwork_var_samp_fields
+    = Artwork_var_samp_fields
+
+
+type Artwork_variance_fields
+    = Artwork_variance_fields
