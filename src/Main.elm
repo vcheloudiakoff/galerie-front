@@ -6,7 +6,7 @@ module Main exposing (..)
 
 import BodyBuilder as B exposing (..)
 import BodyBuilder.Attributes as A exposing (checked, href, label)
-import BodyBuilder.Elements.Form exposing (CommonParams, buildInputText)
+import BodyBuilder.Elements.Form exposing (CommonParams, buildInputFile, buildInputText)
 import BodyBuilder.Events exposing (onCheck, onClick, onMouseLeave, onMouseOver)
 import BodyBuilder.Router as Router
     exposing
@@ -117,6 +117,7 @@ initData =
     , artworkInputType = draftArtworkInputType
     , maybeZoomedArtworkId = Nothing
     , error = ""
+    , photoId = Nothing
     }
 
 
@@ -333,6 +334,7 @@ type alias Data =
     , artworkInputType : Galerie.InputObject.ArtworkInputType
     , maybeZoomedArtworkId : Maybe ArtworkId
     , error : String
+    , photoId : Maybe String
     }
 
 
@@ -1057,7 +1059,24 @@ exhibitionsShow exhibitionId data route =
 
 galerieIndex query data route =
     verticalLayout []
-        [ headerViewRow route ]
+        [ headerViewRow route
+        , autoRow [ A.style [ Style.box [ Box.margin [ Margin.top <| Margin.width (px 60) ] ] ] ] [ horizontallyCentered [ B.img "" "https://belier-angora.liubov.net/images/Cam%C3%A9lia_herbe_1an.jpg" [] ] ]
+        , autoRow
+            [ A.style
+                [ Style.box
+                    [ Box.margin [ Margin.top <| Margin.width (px 110) ]
+                    , Box.paddingHorizontal (px 400)
+                    ]
+                ]
+            ]
+            [ horizontallyCentered
+                [ B.div [ A.style [ Style.blockProperties [ Block.width (px 1000), Block.alignCenter ] ] ]
+                    [ B.h1 [] [ B.text "Galerie Cheloudiakoff" ]
+                    , B.div [ A.style [ Style.box [ Box.paddingHorizontal (px 300), Box.paddingBottom (px 150) ] ] ] [ B.text "poakzpokspdokq spokd qpsodkqposkd pqoskdpqo kdpqoks dpokqs dpokqs dpokq sdpokq sdpok qspdokq spdok qspodk qpsodk qpsokd fsdpokf pqodk pqsokd poakzpokspdokq spokd qpsodkqposkd pqoskdpqo kdpqoks dpokqs dpokqs dpokq sdpokq sdpok qspdokq spdok qspodk qpsodk qpsokd fsdpokf pqodk pqsokd " ]
+                    ]
+                ]
+            ]
+        ]
 
 
 contactIndex query data route =
