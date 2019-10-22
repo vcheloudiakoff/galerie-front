@@ -1,9 +1,14 @@
 {
   "name": "galerie-cheloudiakoff",
   "version": "1.0.0",
+  "main": "webpack.config.js",
   "scripts": {
     "api": "elm-graphql http://localhost:3000/graphql --base Galerie",
-    "build": "webpack --mode production"
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "start": "webpack-dev-server --port 8000",
+    "test": "make test",
+    "copy-redirects": "cp _redirects dist/"
   },
   "devDependencies": {
     "@dillonkearns/elm-graphql": "^3.6.2",
@@ -12,9 +17,12 @@
   },
   "dependencies": {
     "css-loader": "^3.2.0",
-    "elm": "^0.19.0-no-deps",
     "elm-webpack-loader": "^6.0.0",
+    "file-loader": "^4.2.0",
     "style-loader": "^1.0.0",
-    "webpack": "^4.41.2"
+    "url-loader": "^2.2.0",
+    "webpack": "^4.41.2",
+    "webpack-dev-middleware": "^3.7.2",
+    "webpack-dev-server": "^3.8.2"
   }
 }
